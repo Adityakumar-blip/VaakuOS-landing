@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ------------------------------------------------------------
+       FONTS
+    ------------------------------------------------------------ */
+    --font-sans: "General Sans", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+
+    /* ------------------------------------------------------------
+       BASE SURFACES
+    ------------------------------------------------------------ */
+    --background: 30 35% 92%;         /* Cream / Merino */
+    --foreground: 240 0% 6%;          /* Cod Gray */
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 0% 6%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 0% 6%;
+
+    /* ------------------------------------------------------------
+       BRAND COLORS
+    ------------------------------------------------------------ */
+
+    /* Primary — Extracted Coda Green */
+    --primary: 152 39% 27%;           /* #2A6144 */
+    --primary-foreground: 30 35% 92%;
+    --primary-hover: 152 39% 32%;
+
+    /* Secondary — Neutral Cream */
+    --secondary: 30 35% 88%;
+    --secondary-foreground: 240 0% 6%;
+    --secondary-hover: 30 35% 83%;
+
+    /* Accent — Coda Orange */
+    --accent: 14 85% 54%;             /* #EE5A29 */
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 14 85% 48%;
+
+    /* Tertiary — Mint Card Green */
+    --tertiary: 145 45% 75%;
+    --tertiary-foreground: 240 0% 6%;
+    --tertiary-hover: 145 45% 70%;
+
+    /* ------------------------------------------------------------
+       MUTED / UI NEUTRALS
+    ------------------------------------------------------------ */
+    --muted: 30 30% 96%;
+    --muted-foreground: 240 0% 40%;
+
+    /* ------------------------------------------------------------
+       STATUS COLORS
+    ------------------------------------------------------------ */
+    --success: 145 45% 50%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 30 70% 50%;
+    --warning-foreground: 240 0% 6%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --info: 200 70% 60%;
+    --info-foreground: 0 0% 100%;
+
+    /* ------------------------------------------------------------
+       FORM ELEMENTS
+    ------------------------------------------------------------ */
+    --border: 30 12% 80%;
+    --input: 30 12% 80%;
+    --ring: 152 39% 27%;
+
+    --radius: 0.75rem;
+
+    /* ------------------------------------------------------------
+       SIDEBAR
+    ------------------------------------------------------------ */
+    --sidebar-background: 30 35% 92%;
+    --sidebar-foreground: 240 0% 20%;
+
+    --sidebar-primary: 152 39% 27%;
+    --sidebar-primary-foreground: 30 35% 92%;
+
+    --sidebar-accent: 145 45% 75%;
+    --sidebar-accent-foreground: 240 0% 6%;
+
+    --sidebar-border: 30 15% 85%;
+    --sidebar-ring: 152 39% 27%;
+
+    --sidebar-hover: 152 39% 22%;
+    --sidebar-active: 152 39% 32%;
+    --sidebar-active-foreground: 30 35% 98%;
+
+    /* ------------------------------------------------------------
+       GRADIENTS
+    ------------------------------------------------------------ */
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(152 39% 27%),
+      hsl(152 39% 32%)
+    );
+
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(14 85% 54%),
+      hsl(14 85% 60%)
+    );
+
+    --gradient-tertiary: linear-gradient(
+      135deg,
+      hsl(145 45% 75%),
+      hsl(145 45% 82%)
+    );
+
+    /* ------------------------------------------------------------
+       SHADOWS
+    ------------------------------------------------------------ */
+    --shadow-sm: 0 1px 2px rgba(0 0 0 / 0.04);
+    --shadow-md: 0 2px 4px rgba(0 0 0 / 0.06);
+    --shadow-lg: 0 4px 8px rgba(0 0 0 / 0.08);
+    --shadow-xl: 0 8px 14px rgba(0 0 0 / 0.10);
+
+    /* ------------------------------------------------------------
+       TRANSITIONS
+    ------------------------------------------------------------ */
+    --transition-base: all 0.2s ease;
+    --transition-slow: all 0.3s ease;
+  }
+
+  /* ============================================================
+     DARK MODE
+  ============================================================ */
+  .dark {
+    --background: 240 0% 6%;
+    --foreground: 30 35% 92%;
+
+    --card: 240 0% 10%;
+    --card-foreground: 30 35% 92%;
+
+    --popover: 240 0% 10%;
+    --popover-foreground: 30 35% 92%;
+
+    --primary: 152 39% 27%;
+    --primary-foreground: 30 35% 92%;
+    --primary-hover: 152 39% 32%;
+
+    --secondary: 240 0% 12%;
+    --secondary-foreground: 30 35% 92%;
+    --secondary-hover: 240 0% 16%;
+
+    --muted: 240 0% 14%;
+    --muted-foreground: 30 35% 70%;
+
+    --accent: 14 85% 54%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 14 85% 48%;
+
+    --tertiary: 145 45% 60%;
+    --tertiary-foreground: 30 35% 92%;
+    --tertiary-hover: 145 45% 55%;
+
+    --success: 145 45% 50%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 30 70% 50%;
+    --warning-foreground: 30 35% 92%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --info: 200 60% 55%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 240 0% 22%;
+    --input: 240 0% 22%;
+    --ring: 152 39% 27%;
+
+    --sidebar-background: 240 0% 10%;
+    --sidebar-foreground: 30 35% 92%;
+    --sidebar-primary: 152 39% 27%;
+    --sidebar-primary-foreground: 30 35% 92%;
+
+    --sidebar-accent: 240 0% 14%;
+    --sidebar-accent-foreground: 30 35% 92%;
+
+    --sidebar-border: 240 0% 22%;
+    --sidebar-ring: 152 39% 27%;
+
+    --sidebar-hover: 240 0% 18%;
+    --sidebar-active: 152 39% 32%;
+    --sidebar-active-foreground: 30 35% 92%;
+  }
+}
+
+/* Base resets */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+  html {
+    /* scroll-behavior: smooth; */ /* Disabled for Lenis */
+  }
+}
+
+/* Custom Scrollbar for modern look */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 5px;
+  border: 2px solid hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+.lenis.lenis-smooth {
+  height: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
