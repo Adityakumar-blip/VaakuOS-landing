@@ -4,7 +4,7 @@ import { FrostedBackground } from "@/components/FrostedBackground";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, CheckCircle2, Bot, Plus, X, ChevronDown, HelpCircle, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRazorpay } from "@/hooks/use-razorpay";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,143 +17,129 @@ import {
 
 // --- Configuration ---
 
-const ADDONS = [
-  {
-    id: "ai-copilot",
-    name: "AI Copilot",
-    shortName: "AI",
-    description: "GPT-4o auto-responses",
-    price: 999,
-    period: "/mo",
-    icon: Bot,
-    type: "monthly",
-    featureText: "AI Copilot Enabled"
-  },
-  {
-    id: "setup-assist",
-    name: "Expert Setup",
-    shortName: "Setup",
-    description: "One-time account setup",
-    price: 2999,
-    period: "one-time",
-    icon: Sparkles,
-    type: "onetime",
-    featureText: "Priority Expert Setup"
-  }
-];
-
-const PLANS_DATA = {
-  monthly: [
-    {
-      id: "free-monthly",
-      name: "Free",
-      description: "Essential tools to start.",
-      basePrice: 0,
-      baseFeatures: ["1,000 Monthly Messages", "1 User Agent", "Basic Automation", "Community Support"],
-      cta: "Get Started Free",
-      highlight: false
-    },
-    {
-      id: "pro-monthly",
-      name: "Professional",
-      description: "For growing businesses.",
-      basePrice: 1599,
-      baseFeatures: ["10,000 Monthly Messages", "5 User Agents", "No Branding", "Priority Support", "Webhooks"],
-      cta: "Start Free Trial",
-      highlight: false
-    },
-    {
-      id: "team-monthly",
-      name: "Team",
-      description: "Advanced collaboration.",
-      basePrice: 3999,
-      baseFeatures: ["100,000 Monthly Messages", "Unlimited Agents", "Shared Workflows", "Zero Meta Markup", "Dedicated Support"],
-      cta: "Start Free Trial",
-      highlight: true
-    },
-    {
-      id: "enterprise-monthly",
-      name: "Enterprise",
-      description: "Custom solutions.",
-      basePrice: null, 
-      baseFeatures: ["Unlimited Volume", "SSO & Advanced Security", "Custom Contracts", "Dedicated Success Manager"],
-      cta: "Contact Sales",
-      highlight: false
-    }
-  ],
-  yearly: [
-    {
-      id: "free-yearly",
-      name: "Free",
-      description: "Essential tools to start.",
-      basePrice: 0,
-      baseFeatures: ["1,000 Monthly Messages", "1 User Agent", "Basic Automation", "Community Support"],
-      cta: "Get Started Free",
-      highlight: false
-    },
-    {
-      id: "pro-yearly",
-      name: "Professional",
-      description: "For growing businesses.",
-      basePrice: 1299,
-      baseFeatures: ["10,000 Monthly Messages", "5 User Agents", "No Branding", "Priority Support", "Webhooks"],
-      cta: "Start Free Trial",
-      highlight: false
-    },
-    {
-      id: "team-yearly",
-      name: "Team",
-      description: "Advanced collaboration.",
-      basePrice: 3199,
-      baseFeatures: ["100,000 Monthly Messages", "Unlimited Agents", "Shared Workflows", "Zero Meta Markup", "Dedicated Support"],
-      cta: "Start Free Trial",
-      highlight: true
-    },
-    {
-      id: "enterprise-yearly",
-      name: "Enterprise",
-      description: "Custom solutions.",
-      basePrice: null,
-      baseFeatures: ["Unlimited Volume", "SSO & Advanced Security", "Custom Contracts", "Dedicated Success Manager"],
-      cta: "Contact Sales",
-      highlight: false
-    }
-  ]
+const ICON_MAP: Record<string, any> = {
+  "Bot": Bot,
+  "Sparkles": Sparkles
 };
 
-const COMPARISON_CATEGORIES = [
+const FEATURE_METADATA: Record<string, { label: string, type?: "boolean" | "text", suffix?: string }> = {
+  monthly_messages: { label: "Monthly Messages" },
+  user_agents: { label: "User Agents" },
+  bot_automation: { label: "Automation" },
+  support: { label: "Support Level" },
+  branding: { label: "No Branding", type: "boolean" },
+  webhooks: { label: "Webhooks", type: "boolean" },
+  broadcasts: { label: "Broadcasts", type: "boolean" },
+  shared_inbox: { label: "Shared Inbox", type: "boolean" },
+  shared_workflows: { label: "Shared Workflows", type: "boolean" },
+  zero_markup: { label: "Zero Meta Markup", type: "boolean" },
+  dedicated_support: { label: "Dedicated Support", type: "boolean" },
+  role_based_access: { label: "Role Based Access", type: "boolean" },
+  unlimited_volume: { label: "Unlimited Volume", type: "boolean" },
+  sso: { label: "SSO (SAML)", type: "boolean" },
+  custom_contracts: { label: "Custom Contracts", type: "boolean" },
+  dedicated_manager: { label: "Dedicated Success Manager", type: "boolean" },
+  onboarding: { label: "Onboarding Session", type: "boolean" },
+  ai_replies: { label: "AI Copilot Enabled", type: "boolean" },
+  setup_assist: { label: "Priority Expert Setup", type: "boolean" },
+  max_team: { label: "Email" },
+  max_teams: { label: "Instagram" },
+  max_team_member: { label: "WhatsApp" },
+  max_team_members: { label: "Facebook" }
+};
+
+
+const COMPARISON_CONFIG = [
   {
     title: "Messaging & Automation",
     rows: [
-      { name: "Monthly Messages", free: "1,000", pro: "10,000", team: "100,000", ent: "Unlimited", help: "Number of conversations you can initiate." },
-      { name: "Zero Meta Markup", free: false, pro: false, team: true, ent: true, help: "Pay direct Meta rates with no extra fees." },
-      { name: "Broadcasts", free: true, pro: true, team: true, ent: true },
-      { name: "Webhooks", free: false, pro: true, team: true, ent: true },
+      { key: "monthly_messages", help: "Number of conversations you can initiate." },
+      { key: "zero_markup", help: "Pay direct Meta rates with no extra fees." },
+      { key: "broadcasts" },
+      { key: "webhooks" },
     ]
   },
   {
     title: "Team & Security",
     rows: [
-      { name: "User Agents", free: "1", pro: "5", team: "Unlimited", ent: "Unlimited" },
-      { name: "Shared Inbox", free: true, pro: true, team: true, ent: true },
-      { name: "Role Based Access", free: false, pro: false, team: true, ent: true },
-      { name: "SSO (SAML)", free: false, pro: false, team: false, ent: true },
+      { key: "user_agents" },
+      { key: "shared_inbox" },
+      { key: "role_based_access" },
+      { key: "sso" },
     ]
   },
   {
     title: "Support & Services",
     rows: [
-      { name: "Support Level", free: "Community", pro: "Email", team: "Priority", ent: "Dedicated Mgr" },
-      { name: "Onboarding Session", free: false, pro: false, team: true, ent: true },
+      { key: "support" },
+      { key: "onboarding" },
+    ]
+  },
+  {
+    title: "Omnichannel Features",
+    rows: [
+      { key: "max_team", help: "Email integration status" },
+      { key: "max_teams", help: "Instagram integration status" },
+      { key: "max_team_member", help: "WhatsApp integration status" },
+      { key: "max_team_members", help: "Facebook integration status" },
     ]
   }
 ];
+
+interface APIFeature {
+  code: string;
+  label: string;
+  description: string | null;
+  value: any;
+  display_value: string;
+}
+
+interface APIPlan {
+  id: string;
+  name: string;
+  subtitle: string | null;
+  description: string;
+  amount: number;
+  currency: string;
+  billing_interval: number;
+  features: APIFeature[];
+  isYearly: boolean;
+  yearlyDiscount: number;
+  yearlyPrice: number;
+}
+
+interface APIData {
+  plans: {
+    monthly: APIPlan[];
+    yearly: APIPlan[];
+  };
+  addons: any[];
+  meta: {
+    currency: string;
+    fetched_at: string;
+  };
+}
 
 const Pricing = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [apiData, setApiData] = useState<APIData | null>(null);
   const { initiatePurchase } = useRazorpay();
+
+  useEffect(() => {
+    fetch("https://instacal-api.doodlecaboodle.com/public/pricing")
+      .then(res => res.json())
+      .then(data => {
+        setApiData(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch pricing:", err);
+        setLoading(false);
+      });
+  }, []);
 
   const toggleAddon = (id: string) => {
     setSelectedAddons(prev => 
@@ -162,22 +148,46 @@ const Pricing = () => {
   };
 
   const handleCreatePlan = (basePlan: any, totalAmount: number) => {
-    // Pass the calculated total amount or list of products to the backend
     initiatePurchase({ 
         ...basePlan,
-        amount: totalAmount * 100 // Convert to paise/cents if needed by razorpay hook
+        amount: totalAmount * 100
     });
   };
 
-  const currentPlanSet = PLANS_DATA[billingCycle];
+  const plans = apiData ? {
+    monthly: apiData.plans.monthly.map(plan => ({
+      ...plan,
+      price: plan.amount,
+      highlight: plan.name === "New year plan" || plan.name === "Pro",
+      cta: plan.amount === 0 ? "Get Started Free" : (plan.amount > 0 ? "Start Free Trial" : "Contact Sales"),
+      features: plan.features.reduce((acc, f) => ({ ...acc, [f.code]: f.display_value }), {})
+    })),
+    yearly: apiData.plans.yearly.map(plan => ({
+      ...plan,
+      price: plan.amount,
+      annual_price: plan.yearlyPrice,
+      highlight: plan.name === "New year plan" || plan.name === "Pro",
+      cta: plan.amount === 0 ? "Get Started Free" : (plan.amount > 0 ? "Start Free Trial" : "Contact Sales"),
+      features: plan.features.reduce((acc, f) => ({ ...acc, [f.code]: f.display_value }), {})
+    }))
+  } : { monthly: [], yearly: [] };
+
+  const currentAddons = apiData?.addons?.map(addon => ({
+    ...addon,
+    price: addon.amount ?? addon.price ?? 0,
+    icon: addon.icon && ICON_MAP[addon.icon] ? addon.icon : "Sparkles",
+    period: addon.period ?? (addon.type === 'recurring' ? '/mo' : 'one-time')
+  })) || [];
+
+  const currentPlanSet = plans[billingCycle];
 
   const getCalculatedPrice = (basePrice: number | null) => {
     if (basePrice === null) return null;
     let total = basePrice;
     
-    // Add Monthly Addons to the monthly rate
-    ADDONS.forEach(addon => {
-        if (selectedAddons.includes(addon.id) && addon.type === 'monthly') {
+    // Add Recurring Addons
+    currentAddons.forEach(addon => {
+        if (selectedAddons.includes(addon.id) && addon.type === 'recurring') {
             total += addon.price;
         }
     });
@@ -185,9 +195,8 @@ const Pricing = () => {
   };
 
   const getOneTimeFee = () => {
-      // Calculate one-time fees separately
       let total = 0;
-      ADDONS.forEach(addon => {
+      currentAddons.forEach(addon => {
           if (selectedAddons.includes(addon.id) && addon.type === 'onetime') {
               total += addon.price;
           }
@@ -200,8 +209,16 @@ const Pricing = () => {
   // Helper to handle purchase from sticky header
   const handlePurchaseByIndex = (index: number) => {
       const plan = currentPlanSet[index];
-      const price = getCalculatedPrice(plan.basePrice) || 0;
+      const price = getCalculatedPrice(plan.price) || 0;
       handleCreatePlan(plan, price);
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
@@ -245,8 +262,8 @@ const Pricing = () => {
 
         {/* --- ADD-ONS SELECTION (Top Placement) --- */}
         <div className="max-w-5xl mx-auto mb-16">
-            <div className="bg-white/60 backdrop-blur-md border border-border/50 rounded-3xl p-1">
-                 <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/50">
+            <div className="bg-white/60 backdrop-blur-md border border-border/50 rounded-3xl p-1 overflow-hidden">
+                 <div className="grid grid-cols-1 md:grid-flow-col md:auto-cols-fr divide-y md:divide-y-0 md:divide-x divide-border/50">
                     
                     {/* Platform Label (Visual Anchor) */}
                     <div className="p-6 flex flex-col justify-center items-start md:items-center bg-secondary/20 rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none">
@@ -258,28 +275,29 @@ const Pricing = () => {
                     </div>
 
                     {/* Add-on 1 */}
-                    {ADDONS.map((addon) => {
+                    {currentAddons.map((addon) => {
                         const isSelected = selectedAddons.includes(addon.id);
+                        const Icon = ICON_MAP[addon.icon];
                         return (
                             <div 
                                 key={addon.id}
                                 onClick={() => toggleAddon(addon.id)}
                                 className={cn(
-                                    "p-6 cursor-pointer transition-all hover:bg-white relative group",
+                                    "p-6 cursor-pointer transition-all relative group",
                                     isSelected ? "bg-primary/[0.03]" : ""
                                 )}
                             >
                                 <div className="flex items-start justify-between mb-2">
                                     <div className="flex items-center gap-3">
                                         <div className={cn("p-2 rounded-lg transition-colors", isSelected ? "bg-primary text-white" : "bg-secondary text-muted-foreground")}>
-                                            <addon.icon className="h-5 w-5" />
+                                            <Icon className="h-5 w-5" />
                                         </div>
                                         <div>
                                             <span className="font-bold block text-lg">{addon.name}</span>
                                             <span className="text-xs font-bold text-primary p-0.5 border border-primary/20 rounded bg-primary/5">
-                                                +{addon.price.toLocaleString()} {addon.period}
-                                            </span>
-                                        </div>
+                                                 +{addon.price.toLocaleString()} {addon.period}
+                                             </span>
+                                         </div>
                                     </div>
                                     <div className={cn(
                                         "h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all",
@@ -301,8 +319,8 @@ const Pricing = () => {
         {/* --- Pricing Cards --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-24 max-w-[1400px] mx-auto">
           {currentPlanSet.map((plan, idx) => {
-            const calculatedPrice = getCalculatedPrice(plan.basePrice);
-            const isEnterprise = plan.basePrice === null;
+            const calculatedPrice = getCalculatedPrice(plan.price);
+            const isEnterprise = plan.price === null;
             
             return (
             <motion.div
@@ -317,9 +335,9 @@ const Pricing = () => {
                   : "bg-white/60 border-border hover:border-primary/30 hover:shadow-lg z-0"
               )}
             >
-              {plan.highlight && (
+              {/* {plan.highlight && (
                 <div className="absolute top-0 left-0 w-full h-1 bg-primary rounded-t-2xl" />
-              )}
+              )} */}
               {plan.highlight && (
                 <div className="absolute top-3 right-3 text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full uppercase tracking-wider">
                   Recommended
@@ -378,10 +396,18 @@ const Pricing = () => {
 
               <div className="space-y-4 flex-grow border-t border-border/50 pt-6">
                  {/* Add-on Features Highlight */}
-                 <AnimatePresence>
+                  <AnimatePresence>
                     {selectedAddons.length > 0 && !isEnterprise && (
                         <div className="space-y-3 mb-4 pb-4 border-b border-border/40 border-dashed">
-                             {ADDONS.map(addon => selectedAddons.includes(addon.id) && (
+                             {currentAddons.map(addon => {
+                                 const isIncluded = selectedAddons.includes(addon.id);
+                                 if (!isIncluded) return null;
+                                 
+                                 // Find the first feature key that is true to display text
+                                 const featureKey = Object.keys(addon.features)[0];
+                                 const featureText = FEATURE_METADATA[featureKey]?.label || (addon as any).name;
+
+                                 return (
                                  <motion.div 
                                     key={addon.id}
                                     initial={{ opacity: 0, x: -10 }}
@@ -390,22 +416,35 @@ const Pricing = () => {
                                     className="flex gap-3 text-sm font-semibold text-primary"
                                  >
                                     <div className="mt-0.5 p-0.5 bg-primary/10 rounded-full"><Plus className="h-3 w-3" /></div>
-                                    {addon.featureText}
+                                    {featureText}
                                  </motion.div>
-                             ))}
+                                 )
+                             })}
                         </div>
                     )}
-                 </AnimatePresence>
+                  </AnimatePresence>
 
                  {/* Base Features */}
-                {plan.baseFeatures.map((feature, i) => (
+                {Object.entries(plan.features).map(([key, value], i) => {
+                  const metadata = FEATURE_METADATA[key];
+                  if (!metadata) return null; // Skip if no metadata (or if it's internal)
+                  if (!value) return null; // Skip false values
+
+                  let displayText = metadata.label;
+                  if (metadata.type !== "boolean") {
+                      // e.g. "1,000 Monthly Messages"
+                      displayText = `${value} ${metadata.label}`;
+                  }
+
+                  return (
                   <div key={i} className="flex gap-3 text-sm items-start">
                     <div className="mt-0.5 flex-shrink-0 text-primary/60">
                       <Check className="h-4 w-4" />
                     </div>
-                    <span className="text-foreground/80 leading-tight">{feature}</span>
+                    <span className="text-foreground/80 leading-tight">{displayText}</span>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </motion.div>
           )})}
@@ -453,7 +492,7 @@ const Pricing = () => {
                     </div>
 
                     <div className="divide-y divide-border/50">
-                    {COMPARISON_CATEGORIES.map((category, idx) => (
+                    {COMPARISON_CONFIG.map((category, idx) => (
                         <div key={idx}>
                         {/* Category Header */}
                         <div className="bg-secondary/20 p-4 border-y border-border/20 sticky top-[164px] z-30 backdrop-blur-sm">
@@ -464,45 +503,43 @@ const Pricing = () => {
                         
                         {/* Rows */}
                         <div className="divide-y divide-border/10 bg-white/40">
-                            {category.rows.map((row, rIdx) => (
-                            <div key={rIdx} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center p-4 hover:bg-secondary/10 transition-colors group">
-                                
-                                {/* Feature Name */}
-                                <div className="col-span-1 font-medium text-foreground text-sm flex items-center gap-2">
-                                {row.name}
-                                {row.help && (
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                        <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer" />
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                        <p className="w-48 text-xs">{row.help}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                )}
-                                </div>
+                            {category.rows.map((row, rIdx) => {
+                                const metadata = FEATURE_METADATA[row.key];
+                                return (
+                                <div key={rIdx} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center p-4 hover:bg-secondary/10 transition-colors group">
+                                    
+                                    {/* Feature Name */}
+                                    <div className="col-span-1 font-medium text-foreground text-sm flex items-center gap-2">
+                                    {metadata?.label || row.key}
+                                    {row.help && (
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                            <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                            <p className="w-48 text-xs">{row.help}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                    </div>
 
-                                {/* Values */}
-                                <div className="col-span-1 text-center text-sm">
-                                <span className="md:hidden text-muted-foreground text-xs mr-2 font-bold uppercase">Free:</span>
-                                {renderCell(row.free)}
+                                    {/* Values */}
+                                    {currentPlanSet.map((plan, pIdx) => (
+                                        <div key={plan.id} className={cn(
+                                            "col-span-1 text-center text-sm",
+                                            pIdx === 2 ? "font-semibold relative" : "" // Team plan index assumption or logic
+                                        )}>
+                                            <span className="md:hidden text-muted-foreground text-xs mr-2 font-bold uppercase">{plan.name}:</span>
+                                            {/* Desktop Highlight Column Background for Team (index 2) */}
+                                            {pIdx === 2 && (
+                                                <div className="absolute inset-y-0 -left-2 -right-2 bg-primary/5 hidden md:block -z-10 group-hover:bg-primary/10 transition-colors pointer-events-none" />
+                                            )}
+                                            {renderCell(plan.features[row.key as keyof typeof plan.features] || false)}
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="col-span-1 text-center text-sm">
-                                <span className="md:hidden text-muted-foreground text-xs mr-2 font-bold uppercase">Pro:</span>
-                                {renderCell(row.pro)}
-                                </div>
-                                <div className="col-span-1 text-center text-sm font-semibold relative">
-                                {/* Desktop Highlight Column Background */}
-                                <div className="absolute inset-y-0 -left-2 -right-2 bg-primary/5 hidden md:block -z-10 group-hover:bg-primary/10 transition-colors pointer-events-none" />
-                                <span className="md:hidden text-primary text-xs mr-2 font-bold uppercase">Team:</span>
-                                {renderCell(row.team)}
-                                </div>
-                                <div className="col-span-1 text-center text-sm">
-                                <span className="md:hidden text-muted-foreground text-xs mr-2 font-bold uppercase">Ent:</span>
-                                {renderCell(row.ent)}
-                                </div>
-                            </div>
-                            ))}
+                                );
+                            })}
                         </div>
                         </div>
                     ))}
