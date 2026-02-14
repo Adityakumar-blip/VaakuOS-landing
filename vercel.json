@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/mp/:match*",
+      "destination": "https://api.mixpanel.com/:match*"
+    }
+  ]
+}

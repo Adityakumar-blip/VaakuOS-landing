@@ -1,0 +1,35 @@
+[[redirects]]
+  from = "/mp/*"
+  to = "https://api.mixpanel.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/lib/ga"
+  to = "https://www.googletagmanager.com/gtag/js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/lib/m.js"
+  to = "https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/c/*"
+  to = "https://www.clarity.ms/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/mx/*"
+  to = "https://api.mixpanel.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/gx/*"
+  to = "https://www.google-analytics.com/:splat"
+  status = 200
+  force = true
