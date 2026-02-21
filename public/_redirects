@@ -1,0 +1,9 @@
+# Analytics Proxies (must come BEFORE SPA fallback)
+/lib/m.js    https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js    200
+/mx/*        https://api.mixpanel.com/:splat    200
+/lib/ga      https://www.googletagmanager.com/gtag/js    200
+/gx/*        https://www.google-analytics.com/:splat    200
+/c/*         https://www.clarity.ms/:splat    200
+
+# SPA fallback (must be LAST)
+/*           /index.html    200

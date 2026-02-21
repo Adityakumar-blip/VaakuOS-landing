@@ -8,28 +8,18 @@ const CLARITY_PROJECT_ID = import.meta.env.VITE_CLARITY_PROJECT_ID;
 const MIXPANEL_TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN;
 
 let isInitialized = false;
+let autoTrackingSetUp = false;
+let sessionStartTime = 0;
+let lastScrollDepth = 0;
 
 export const initAnalytics = () => {
   if (isInitialized) return;
   isInitialized = true;
 
-  // Initialize Google Analytics
-  if (GA_MEASUREMENT_ID) {
-    const script = document.createElement("script");
-    script.async = true;
-    script.src = `/lib/ga?id=${GA_MEASUREMENT_ID}`; // Proxy script load
-    document.head.appendChild(script);
-
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = function (...args: unknown[]) {
-      window.dataLayer.push(args);
-    };
-    window.gtag("js", new Date());
-    window.gtag("config", GA_MEASUREMENT_ID, {
-      transport_url: window.location.origin + "/gx",
-      first_party_collection: true,
-    });
-    console.log("GA4 Initialized");
+  // Google Analytics — loaded directly from index.html (static script tag)
+  // The gtag config is set in index.html, trackPageView handles route changes
+  if (GA_MEASUREMENT_ID && window.gtag) {
+    console.log("GA4 Active (loaded from index.html)");
   }
 
   // Initialize Microsoft Clarity
@@ -42,7 +32,7 @@ export const initAnalytics = () => {
         };
       t = l.createElement(r);
       t.async = 1;
-      t.src = "/c/tag/" + i; // Proxy script load
+      t.src = "https://www.clarity.ms/tag/" + i;
       y = l.getElementsByTagName(r)[0];
       y.parentNode.insertBefore(t, y);
     })(window, document, "clarity", "script", CLARITY_PROJECT_ID);
@@ -108,7 +98,7 @@ export const initAnalytics = () => {
         const e = f.createElement("script");
         e.type = "text/javascript";
         e.async = true;
-        e.src = "/lib/m.js"; // Proxy script load
+        e.src = "https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";
         const g = f.getElementsByTagName("script")[0];
         if (g.parentNode) {
           g.parentNode.insertBefore(e, g);
@@ -118,13 +108,197 @@ export const initAnalytics = () => {
 
     window.mixpanel.init(MIXPANEL_TOKEN, {
       debug: true,
-      track_pageview: false, // We will track manually
+      track_pageview: true, // Auto-track page views
       persistence: "localStorage",
-      api_host: "/mx", // Proxy through our own domain to bypass ad-blockers
+      api_host: "https://api-eu.mixpanel.com", // EU datacenter
     });
-    console.log("Mixpanel Initialized");
+
+    // Set user profile with device/browser info on first visit
+    window.mixpanel.people.set_once({
+      $created: new Date().toISOString(),
+      "First Landing Page": window.location.pathname,
+      "First Referrer": document.referrer || "Direct",
+    });
+
+    // Set user profile properties that update each visit
+    window.mixpanel.people.set({
+      $browser: navigator.userAgent,
+      $os: navigator.platform,
+      "Screen Resolution": `${window.screen.width}x${window.screen.height}`,
+      "Viewport Size": `${window.innerWidth}x${window.innerHeight}`,
+      Language: navigator.language,
+      "Last Seen": new Date().toISOString(),
+    });
+
+    // Register super properties (sent with every event)
+    window.mixpanel.register({
+      "Screen Resolution": `${window.screen.width}x${window.screen.height}`,
+      "Viewport Size": `${window.innerWidth}x${window.innerHeight}`,
+      Language: navigator.language,
+      Referrer: document.referrer || "Direct",
+      "UTM Source": new URLSearchParams(window.location.search).get("utm_source") || "",
+      "UTM Medium": new URLSearchParams(window.location.search).get("utm_medium") || "",
+      "UTM Campaign": new URLSearchParams(window.location.search).get("utm_campaign") || "",
+    });
+
+    // Increment visit count
+    window.mixpanel.people.increment("Total Visits");
+
+    console.log("Mixpanel Initialized with full tracking");
   }
+
+  // Set up auto-tracking (once)
+  setupAutoTracking();
 };
+
+// ─── AUTO-TRACKING SETUP ─────────────────────────────────────────────────────
+
+const setupAutoTracking = () => {
+  if (autoTrackingSetUp) return;
+  autoTrackingSetUp = true;
+
+  sessionStartTime = Date.now();
+
+  // 1. Auto-track all button clicks
+  document.addEventListener("click", handleClickTracking, true);
+
+  // 2. Track scroll depth
+  let scrollTimeout: ReturnType<typeof setTimeout>;
+  window.addEventListener("scroll", () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const scrollPercent = Math.round(
+        (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100
+      );
+      // Track at 25%, 50%, 75%, 100% milestones
+      const milestones = [25, 50, 75, 100];
+      for (const milestone of milestones) {
+        if (scrollPercent >= milestone && lastScrollDepth < milestone) {
+          lastScrollDepth = milestone;
+          trackEvent("Scroll Depth", {
+            depth: `${milestone}%`,
+            page: window.location.pathname,
+          });
+        }
+      }
+    }, 200);
+  }, { passive: true });
+
+  // 3. Track session duration on page unload
+  window.addEventListener("beforeunload", () => {
+    const sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
+    trackEvent("Session End", {
+      "Session Duration (seconds)": sessionDuration,
+      "Session Duration (formatted)": formatDuration(sessionDuration),
+      "Pages Visited": window.history.length,
+      "Max Scroll Depth": `${lastScrollDepth}%`,
+    });
+
+    // Update user profile with session data
+    if (MIXPANEL_TOKEN && window.mixpanel) {
+      window.mixpanel.people.increment("Total Time on Site (seconds)", sessionDuration);
+    }
+  });
+
+  // 4. Track page visibility (tab switches)
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      trackEvent("Tab Hidden", { page: window.location.pathname });
+    } else {
+      trackEvent("Tab Visible", { page: window.location.pathname });
+    }
+  });
+
+  // 5. Track outbound link clicks
+  document.addEventListener("click", (event) => {
+    const link = (event.target as HTMLElement).closest("a");
+    if (link && link.hostname !== window.location.hostname && link.href) {
+      trackEvent("Outbound Link Click", {
+        url: link.href,
+        text: link.textContent?.trim()?.substring(0, 100) || "",
+        page: window.location.pathname,
+      });
+    }
+  }, true);
+
+  console.log("Auto-tracking set up: clicks, scroll, session, visibility, outbound links");
+};
+
+// ─── CLICK TRACKING ──────────────────────────────────────────────────────────
+
+const handleClickTracking = (event: Event) => {
+  const target = event.target as HTMLElement;
+  if (!target) return;
+
+  // Find the clickable element (button, link, or element with onClick)
+  const clickable = target.closest("button, a, [role='button'], input[type='submit'], [data-track]");
+  if (!clickable) return;
+
+  const element = clickable as HTMLElement;
+  const tagName = element.tagName.toLowerCase();
+
+  // Get descriptive text
+  const text = (
+    element.getAttribute("aria-label") ||
+    element.textContent?.trim() ||
+    element.getAttribute("title") ||
+    ""
+  ).substring(0, 150);
+
+  // Get element location info
+  const elementId = element.id || undefined;
+  const classes = element.className?.toString()?.substring(0, 100) || undefined;
+  const href = element.getAttribute("href") || undefined;
+  const dataTrack = element.getAttribute("data-track") || undefined;
+
+  // Determine element type
+  let elementType = tagName;
+  if (tagName === "a") elementType = "link";
+  if (tagName === "button" || element.getAttribute("role") === "button") elementType = "button";
+  if (tagName === "input") elementType = (element as HTMLInputElement).type || "input";
+
+  // Track the click
+  trackEvent("Element Click", {
+    "Element Type": elementType,
+    "Element Text": text,
+    "Element ID": elementId,
+    "Element Classes": classes,
+    "Link URL": href,
+    "Data Track": dataTrack,
+    Page: window.location.pathname,
+    "Section": findSection(element),
+  });
+};
+
+// Find the nearest section or identifiable parent
+const findSection = (el: HTMLElement): string => {
+  let current: HTMLElement | null = el;
+  while (current) {
+    // Check for section, id, or data-section attribute
+    if (current.getAttribute("data-section")) {
+      return current.getAttribute("data-section") || "";
+    }
+    if (current.id && current.tagName.toLowerCase() !== "root") {
+      return current.id;
+    }
+    if (current.tagName.toLowerCase() === "section" || current.tagName.toLowerCase() === "nav" || current.tagName.toLowerCase() === "footer" || current.tagName.toLowerCase() === "header") {
+      return current.getAttribute("aria-label") || current.className?.toString()?.split(" ")[0] || current.tagName.toLowerCase();
+    }
+    current = current.parentElement;
+  }
+  return "unknown";
+};
+
+// ─── FORMAT HELPERS ──────────────────────────────────────────────────────────
+
+const formatDuration = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if (mins > 0) return `${mins}m ${secs}s`;
+  return `${secs}s`;
+};
+
+// ─── PAGE VIEW TRACKING ─────────────────────────────────────────────────────
 
 interface BraveNavigator extends Navigator {
   brave?: {
@@ -133,16 +307,14 @@ interface BraveNavigator extends Navigator {
 }
 
 export const trackPageView = (path: string) => {
+  // Reset scroll depth for new page
+  lastScrollDepth = 0;
+
   if (GA_MEASUREMENT_ID && window.gtag) {
     window.gtag("config", GA_MEASUREMENT_ID, {
       page_path: path,
     });
   }
-
-  // Clarity tracks page views automatically, but we can add custom tags if needed
-  // if (CLARITY_PROJECT_ID && window.clarity) {
-  //     window.clarity("set", "page", path);
-  // }
 
   if (MIXPANEL_TOKEN && window.mixpanel) {
     // Detect Brave browser
@@ -154,12 +326,20 @@ export const trackPageView = (path: string) => {
         }
       });
     }
-    
+
     window.mixpanel.track("Page View", {
       path: path,
+      title: document.title,
+      referrer: document.referrer || "Direct",
+      "URL": window.location.href,
     });
+
+    // Start timing this page
+    window.mixpanel.time_event("Page Exit");
   }
 };
+
+// ─── EVENT TRACKING ──────────────────────────────────────────────────────────
 
 export const trackEvent = (
   eventName: string,
@@ -176,4 +356,56 @@ export const trackEvent = (
   if (MIXPANEL_TOKEN && window.mixpanel) {
     window.mixpanel.track(eventName, properties);
   }
+};
+
+// ─── CTA / FORM TRACKING HELPERS ────────────────────────────────────────────
+
+export const trackCTAClick = (ctaName: string, location: string) => {
+  trackEvent("CTA Click", {
+    "CTA Name": ctaName,
+    "CTA Location": location,
+    Page: window.location.pathname,
+  });
+
+  if (MIXPANEL_TOKEN && window.mixpanel) {
+    window.mixpanel.people.increment("Total CTA Clicks");
+  }
+};
+
+export const trackFormStart = (formName: string) => {
+  trackEvent("Form Start", {
+    "Form Name": formName,
+    Page: window.location.pathname,
+  });
+
+  if (MIXPANEL_TOKEN && window.mixpanel) {
+    window.mixpanel.time_event("Form Submit");
+  }
+};
+
+export const trackFormSubmit = (formName: string, properties?: Record<string, unknown>) => {
+  trackEvent("Form Submit", {
+    "Form Name": formName,
+    Page: window.location.pathname,
+    ...properties,
+  });
+
+  if (MIXPANEL_TOKEN && window.mixpanel) {
+    window.mixpanel.people.increment("Total Form Submissions");
+  }
+};
+
+export const trackPricingView = (plan: string) => {
+  trackEvent("Pricing View", {
+    Plan: plan,
+    Page: window.location.pathname,
+  });
+};
+
+export const trackFeatureInteraction = (featureName: string, action: string) => {
+  trackEvent("Feature Interaction", {
+    "Feature Name": featureName,
+    Action: action,
+    Page: window.location.pathname,
+  });
 };
