@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Send, CheckCircle2 } from "lucide-react";
 import { FrostedBackground } from "@/components/FrostedBackground";
 import { supabase } from "@/lib/supabase";
+import { trackFormStart, trackFormSubmit, trackEvent } from "@/lib/analytics";
 
 const RegisterInterest = () => {
   const navigate = useNavigate();
@@ -28,9 +29,13 @@ const RegisterInterest = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleFormFocus = () => {
+    trackFormStart("Register Interest");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email) {
       toast.error("Please fill in your name and email.");
       return;
@@ -50,17 +55,25 @@ const RegisterInterest = () => {
         ]);
 
       if (error) throw error;
-      
+
       console.log("Interest registered:", formData);
       toast.success("Interest registered successfully!");
       setIsSuccess(true);
-      
+
+      // Track successful registration
+      trackFormSubmit("Register Interest", {
+        "Has Company Name": !!formData.companyName,
+      });
+      trackEvent("Registration Complete", {
+        "Form Name": "Register Interest",
+      });
+
       setTimeout(() => {
         navigate("/");
       }, 3000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Supabase error:", error);
-      toast.error(error.message || "Something went wrong. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -89,11 +102,11 @@ const RegisterInterest = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden bg-background">
       <FrostedBackground />
-      
+
       <div className="w-full max-w-lg z-10">
-        <Button 
-          variant="ghost" 
-          className="mb-8 group text-muted-foreground hover:text-foreground" 
+        <Button
+          variant="ghost"
+          className="mb-8 group text-muted-foreground hover:text-foreground"
           onClick={() => navigate("/")}
         >
           <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
@@ -112,7 +125,7 @@ const RegisterInterest = () => {
               </CardDescription>
             </div>
           </CardHeader>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} onFocus={handleFormFocus}>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-semibold ml-1">Full Name</Label>
@@ -150,8 +163,8 @@ const RegisterInterest = () => {
               </div>
             </CardContent>
             <CardFooter className="pt-4 pb-8">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 size="xl"
                 className="w-full font-bold group bg-primary hover:bg-primary/90 shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all duration-300"
                 disabled={isLoading}
@@ -171,7 +184,7 @@ const RegisterInterest = () => {
             </CardFooter>
           </form>
         </Card>
-        
+
         <p className="text-center mt-8 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: "0.5s" }}>
           By registering, you agree to receive updates about VaakuOS.
         </p>
