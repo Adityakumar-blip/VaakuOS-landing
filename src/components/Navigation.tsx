@@ -19,8 +19,9 @@ export const Navigation = () => {
   const navItems = [
     { label: "Features", path: "/features" },
     { label: "Integrations", path: "/integrations" },
-    { label: "Pricing", path: "/pricing" },
+    // { label: "Pricing", path: "/pricing" },
     { label: "Calculator", path: "/calculator" },
+    // { label: "Journal", path: "/blog" },
   ];
 
   const menuVariants = {
