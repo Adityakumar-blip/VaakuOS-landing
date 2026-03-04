@@ -28,7 +28,6 @@ const Contact = () => {
                   <div>
                     <h3 className="text-lg font-bold mb-1">Email us</h3>
                     <p className="text-muted-foreground">For general inquiries: hello@vaakuos.com</p>
-                    <p className="text-muted-foreground">For support: support@vaakuos.com</p>
                   </div>
                 </div>
 
@@ -51,7 +50,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold mb-1">Our Offices</h3>
-                    <p className="text-muted-foreground">Bengaluru, KA, India</p>
+                    <p className="text-muted-foreground">Delhi. India</p>
                     <p className="text-muted-foreground">Remote-First Team</p>
                   </div>
                 </div>
@@ -78,7 +77,7 @@ const Contact = () => {
                   <Input placeholder="john@company.com" className="py-6 rounded-xl border-border bg-muted/30" />
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <label className="text-sm font-bold text-muted-foreground ml-1">How can we help?</label>
                   <select className="w-full px-4 py-4 rounded-xl border border-border bg-muted/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                     <option>General Inquiry</option>
@@ -86,7 +85,7 @@ const Contact = () => {
                     <option>Support Request</option>
                     <option>Partnership</option>
                   </select>
-                </div>
+                </div> */}
 
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-muted-foreground ml-1">Message</label>

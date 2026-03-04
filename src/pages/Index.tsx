@@ -35,7 +35,7 @@ const Index = () => {
         <CTASection />
       </ScrollReveal>
 
-      <AnalyticsTest />
+      {/* <AnalyticsTest /> */}
       <Footer />
     </div>
   );
