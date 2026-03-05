@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { blogService } from "@/services/blog-service";
 import { useParams, Link } from "react-router-dom";
 import { format } from "date-fns";
+import { SEO } from "@/components/SEO";
 
 const BlogDetails = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -47,7 +48,18 @@ const BlogDetails = () => {
               </p>
             </div>
           ) : (
-            <article>
+            <>
+              <SEO 
+                title={post.meta_title || post.title}
+                description={post.meta_description || post.excerpt || post.title}
+                ogTitle={post.meta_title || post.title}
+                ogDescription={post.meta_description || post.excerpt || post.title}
+                ogImage={post.featured_image}
+                twitterTitle={post.meta_title || post.title}
+                twitterDescription={post.meta_description || post.excerpt || post.title}
+                twitterImage={post.featured_image}
+              />
+              <article>
               <header className="mb-12">
                 <div className="flex items-center gap-4 mb-6">
                   <Badge className="bg-primary/10 text-primary border-none text-sm font-bold px-4 py-1">
@@ -129,6 +141,7 @@ const BlogDetails = () => {
                 </div>
               </footer>
             </article>
+            </>
           )}
         </div>
       </main>
