@@ -42,7 +42,7 @@ export const CTASection = () => {
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="outline" size="xl" className="w-full sm:w-auto" onClick={() => navigate("/contact")}>
+            <Button variant="outline" size="xl" className="w-full sm:w-auto" onClick={() => navigate("/register-interest")}>
               Schedule a Demo
             </Button>
           </div>

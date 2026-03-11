@@ -19,6 +19,7 @@ import Integrations from "./pages/Integrations";
 import Changelog from "./pages/Changelog";
 import About from "./pages/About";
 import Blog from "./pages/Blog";
+import BlogDetails from "./pages/BlogDetails";
 import Careers from "./pages/Careers";
 import Contact from "./pages/Contact";
 import Documentation from "./pages/Documentation";
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/changelog" element={<Changelog />} />
             <Route path="/about" element={<About />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogDetails />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/documentation" element={<Documentation />} />

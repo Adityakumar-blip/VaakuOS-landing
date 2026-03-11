@@ -30,7 +30,7 @@ export const HeroSection = () => {
   };
 
   return (
-    <section className="relative pt-24 md:pt-40 pb-20 px-4 overflow-hidden">
+    <section className="relative pt-32 md:pt-40 pb-20 px-4 overflow-hidden">
       {/* Background decorations */}
       <FrostedBackground />
 
@@ -41,6 +41,19 @@ export const HeroSection = () => {
           initial="hidden"
           animate="visible"
         >
+          {/* Announcement Badge */}
+          <motion.div 
+            variants={itemVariants}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-8 cursor-pointer hover:bg-primary/15 transition-colors group"
+            onClick={() => navigate("/register-interest")}
+          >
+            <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-xs md:text-sm font-medium text-primary">
+              Join the waitlist and get <span className="font-bold">10% off</span> launching on 1st April
+            </span>
+            <ArrowRight className="h-3 w-3 text-primary group-hover:translate-x-0.5 transition-transform" />
+          </motion.div>
+
           <motion.h1 
             variants={itemVariants}
             className="text-4xl sm:text-5xl md:text-7xl font-medium text-foreground mb-6 leading-[1.1] tracking-tight"

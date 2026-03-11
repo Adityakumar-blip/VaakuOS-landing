@@ -2,14 +2,12 @@ import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { FrostedBackground } from "@/components/FrostedBackground";
 import { Button } from "@/components/ui/button";
-import { Check, Info, MessageSquare, Bot, UserPlus, Zap, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import { Check, Sparkles, CheckCircle2, Bot, Plus, X, ChevronDown, HelpCircle, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
+import { useState, useEffect } from "react";
 import { useRazorpay } from "@/hooks/use-razorpay";
-
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Tooltip,
   TooltipContent,
@@ -17,398 +15,550 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-interface PlanFeature {
-  text: string;
-  icon?: any;
-  highlight?: string;
-  isUPI?: boolean;
+// --- Configuration ---
+
+const ICON_MAP: Record<string, any> = {
+  "Bot": Bot,
+  "Sparkles": Sparkles
+};
+
+const FEATURE_METADATA: Record<string, { label: string, type?: "boolean" | "text", suffix?: string }> = {
+  monthly_messages: { label: "Monthly Messages" },
+  user_agents: { label: "User Agents" },
+  bot_automation: { label: "Automation" },
+  support: { label: "Support Level" },
+  branding: { label: "No Branding", type: "boolean" },
+  webhooks: { label: "Webhooks", type: "boolean" },
+  broadcasts: { label: "Broadcasts", type: "boolean" },
+  shared_inbox: { label: "Shared Inbox", type: "boolean" },
+  shared_workflows: { label: "Shared Workflows", type: "boolean" },
+  zero_markup: { label: "Zero Meta Markup", type: "boolean" },
+  dedicated_support: { label: "Dedicated Support", type: "boolean" },
+  role_based_access: { label: "Role Based Access", type: "boolean" },
+  unlimited_volume: { label: "Unlimited Volume", type: "boolean" },
+  sso: { label: "SSO (SAML)", type: "boolean" },
+  custom_contracts: { label: "Custom Contracts", type: "boolean" },
+  dedicated_manager: { label: "Dedicated Success Manager", type: "boolean" },
+  onboarding: { label: "Onboarding Session", type: "boolean" },
+  ai_replies: { label: "AI Copilot Enabled", type: "boolean" },
+  setup_assist: { label: "Priority Expert Setup", type: "boolean" },
+  max_team: { label: "Email" },
+  max_teams: { label: "Instagram" },
+  max_team_member: { label: "WhatsApp" },
+  max_team_members: { label: "Facebook" }
+};
+
+
+const COMPARISON_CONFIG = [
+  {
+    title: "Messaging & Automation",
+    rows: [
+      { key: "monthly_messages", help: "Number of conversations you can initiate." },
+      { key: "zero_markup", help: "Pay direct Meta rates with no extra fees." },
+      { key: "broadcasts" },
+      { key: "webhooks" },
+    ]
+  },
+  {
+    title: "Team & Security",
+    rows: [
+      { key: "user_agents" },
+      { key: "shared_inbox" },
+      { key: "role_based_access" },
+      { key: "sso" },
+    ]
+  },
+  {
+    title: "Support & Services",
+    rows: [
+      { key: "support" },
+      { key: "onboarding" },
+    ]
+  },
+  {
+    title: "Omnichannel Features",
+    rows: [
+      { key: "max_team", help: "Email integration status" },
+      { key: "max_teams", help: "Instagram integration status" },
+      { key: "max_team_member", help: "WhatsApp integration status" },
+      { key: "max_team_members", help: "Facebook integration status" },
+    ]
+  }
+];
+
+interface APIFeature {
+  code: string;
+  label: string;
+  description: string | null;
+  value: any;
+  display_value: string;
 }
 
-
-interface Plan {
+interface APIPlan {
   id: string;
   name: string;
+  subtitle: string | null;
   description: string;
   amount: number;
   currency: string;
-  billing_cycle: string;
-  features: any;
-  razorpay_plan_id: string;
-  is_active: boolean;
+  billing_interval: number;
+  features: APIFeature[];
+  isYearly: boolean;
+  yearlyDiscount: number;
+  yearlyPrice: number;
 }
 
+interface APIData {
+  plans: {
+    monthly: APIPlan[];
+    yearly: APIPlan[];
+  };
+  addons: any[];
+  meta: {
+    currency: string;
+    fetched_at: string;
+  };
+}
 
 const Pricing = () => {
   const navigate = useNavigate();
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
-  const { initiatePurchase, isProcessing } = useRazorpay();
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [apiData, setApiData] = useState<APIData | null>(null);
+  const { initiatePurchase } = useRazorpay();
 
-  const { data: apiPlans, isLoading } = useQuery<Plan[]>({
-    queryKey: ["plans"],
-    queryFn: async () => {
-      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      const response = await fetch(`${baseUrl}/subscriptions/plans`);
-      if (!response.ok) throw new Error("Failed to fetch plans");
-      return response.json();
-    },
-  });
-
-  const handlePurchase = async (plan: Plan) => {
-    await initiatePurchase(plan);
-  };
-
-
-  const featureIconMap: Record<string, any> = {
-    MessageSquare,
-    UserPlus,
-    Sparkles,
-    Zap,
-    Bot,
-    ShieldCheck,
-    Info,
-  };
-
-  const displayPlans = useMemo(() => {
-    if (!apiPlans) return [];
-    return apiPlans
-      .filter((p) => p.billing_cycle === billingCycle)
-      .map((p) => {
-        const features = Array.isArray(p.features)
-          ? p.features.map((f: any) => ({
-              ...f,
-              icon: featureIconMap[f.icon] || Check,
-            }))
-          : [];
-
-        // Add UPI Autopay feature for paid plans
-        if (p.amount > 0 && p.name.toLowerCase() !== "enterprise") {
-          features.push({
-            text: "UPI Autopay Supported",
-            icon: Sparkles,
-            highlight: "GPay, PhonePe, Paytm",
-            isUPI: true
-          });
-        }
-
-        return {
-
-          ...p,
-          displayPrice: (p.amount / 100).toLocaleString(),
-          features,
-          recommended: p.name.toLowerCase() === "growth",
-          bestFor: p.name.toLowerCase() === "free" ? "Trial & Hobbyists" : 
-                   p.name.toLowerCase() === "starter" ? "Small Businesses" :
-                   p.name.toLowerCase() === "growth" ? "Scaling D2C Brands" : "Large Corporations",
-          cta: p.name.toLowerCase() === "free" ? "Get Started Free" : 
-               p.name.toLowerCase() === "enterprise" ? "Contact Sales" : "Get Started"
-        };
+  useEffect(() => {
+    fetch("https://instacal-api.doodlecaboodle.com/public/pricing")
+      .then(res => res.json())
+      .then(data => {
+        setApiData(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch pricing:", err);
+        setLoading(false);
       });
-  }, [apiPlans, billingCycle]);
+  }, []);
 
+  const toggleAddon = (id: string) => {
+    setSelectedAddons(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
 
-  const metaRates = [
-    { category: "Marketing", definition: "Promotional messages, offers, alerts.", rate: "₹0.78 - ₹0.82" },
-    { category: "Utility", definition: "Order updates, shipping, transactions.", rate: "₹0.11 - ₹0.13" },
-    { category: "Authentication", definition: "One-Time Passwords (OTP).", rate: "₹0.11 - ₹0.12" },
-    { category: "Service", definition: "User-initiated support queries.", rate: "FREE (First 1,000/mo)" },
-  ];
+  const handleCreatePlan = (basePlan: any, totalAmount: number) => {
+    initiatePurchase({ 
+        ...basePlan,
+        amount: totalAmount * 100
+    });
+  };
+
+  const plans = apiData ? {
+    monthly: apiData.plans.monthly.map(plan => ({
+      ...plan,
+      price: plan.amount,
+      highlight: plan.name === "New year plan" || plan.name === "Pro",
+      cta: plan.amount === 0 ? "Get Started Free" : (plan.amount > 0 ? "Start Free Trial" : "Contact Sales"),
+      features: plan.features.reduce((acc, f) => ({ ...acc, [f.code]: f.display_value }), {})
+    })),
+    yearly: apiData.plans.yearly.map(plan => ({
+      ...plan,
+      price: plan.amount,
+      annual_price: plan.yearlyPrice,
+      highlight: plan.name === "New year plan" || plan.name === "Pro",
+      cta: plan.amount === 0 ? "Get Started Free" : (plan.amount > 0 ? "Start Free Trial" : "Contact Sales"),
+      features: plan.features.reduce((acc, f) => ({ ...acc, [f.code]: f.display_value }), {})
+    }))
+  } : { monthly: [], yearly: [] };
+
+  const currentAddons = apiData?.addons?.map(addon => ({
+    ...addon,
+    price: addon.amount ?? addon.price ?? 0,
+    icon: addon.icon && ICON_MAP[addon.icon] ? addon.icon : "Sparkles",
+    period: addon.period ?? (addon.type === 'recurring' ? '/mo' : 'one-time')
+  })) || [];
+
+  const currentPlanSet = plans[billingCycle];
+
+  const getCalculatedPrice = (basePrice: number | null) => {
+    if (basePrice === null) return null;
+    let total = basePrice;
+    
+    // Add Recurring Addons
+    currentAddons.forEach(addon => {
+        if (selectedAddons.includes(addon.id) && addon.type === 'recurring') {
+            total += addon.price;
+        }
+    });
+    return total;
+  };
+
+  const getOneTimeFee = () => {
+      let total = 0;
+      currentAddons.forEach(addon => {
+          if (selectedAddons.includes(addon.id) && addon.type === 'onetime') {
+              total += addon.price;
+          }
+      });
+      return total;
+  };
+
+  const oneTimeFee = getOneTimeFee();
+
+  // Helper to handle purchase from sticky header
+  const handlePurchaseByIndex = (index: number) => {
+      const plan = currentPlanSet[index];
+      const price = getCalculatedPrice(plan.price) || 0;
+      handleCreatePlan(plan, price);
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative font-sans text-foreground">
       <Navigation />
       <FrostedBackground />
 
-      <main className="container mx-auto px-4 pt-32 pb-20 relative z-10">
-        {/* Hero Section */}
-        <div className="text-center mb-16 animate-fade-in">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-full mb-6">
-            <Sparkles className="h-4 w-4" />
-            <span className="text-sm font-semibold tracking-wide uppercase">
-              The Most Scalable WhatsApp Platform
-            </span>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-foreground mb-6 tracking-tight">
-            Enterprise Performance. <br />
-            <span className="text-primary italic">SMB-Friendly Prices.</span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-10">
-            Get <span className="text-foreground font-semibold">"Enterprise-grade"</span> features at 
-            <span className="text-foreground font-semibold"> "SMB-friendly"</span> prices. 
-            No more paying per agent. No more markup on messages.
-          </p>
+      <main className="container mx-auto px-4 pt-32 pb-24 relative z-10 max-w-[1600px]">
+        
+        {/* --- Header & Toggles --- */}
+        <div className="text-center max-w-4xl mx-auto mb-10">
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
+              Plans that scale with you
+            </h1>
+            <p className="text-xl text-muted-foreground mb-8">
+              Simple pricing. No hidden fees. Cancel anytime.
+            </p>
 
-          <div className="flex justify-center mb-12">
-            <Tabs 
-              defaultValue="monthly" 
-              value={billingCycle} 
-              onValueChange={(v) => setBillingCycle(v as "monthly" | "yearly")}
-              className="w-[300px]"
-            >
-              <TabsList className="grid w-full grid-cols-2 p-1 bg-secondary/50 backdrop-blur-sm border border-border rounded-full h-12">
-                <TabsTrigger 
-                  value="monthly" 
-                  className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all font-bold"
-                >
-                  Monthly
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="yearly" 
-                  className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all font-bold"
-                >
-                  Yearly <span className="ml-1.5 text-[10px] bg-primary-foreground text-primary px-2 py-0.5 rounded-full">Save 17%</span>
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </div>
-
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-24 items-start min-h-[500px]">
-          {isLoading ? (
-            Array(4).fill(0).map((_, i) => (
-              <div key={i} className="h-[600px] rounded-3xl border border-border bg-card animate-pulse" />
-            ))
-          ) : displayPlans.length > 0 ? (
-            displayPlans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`relative p-6 rounded-3xl border ${
-                  plan.recommended
-                    ? "border-primary bg-primary/[0.02] shadow-xl shadow-primary/5 scale-105 z-20"
-                    : "border-border bg-background/50 backdrop-blur-sm"
-                } transition-all duration-300 hover:shadow-2xl flex flex-col h-full`}
-              >
-                {plan.recommended && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                    Most Popular
-                  </div>
-                )}
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                  <p className="text-xs text-muted-foreground mb-4 min-h-[32px]">{plan.description}</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold">
-                      {plan.name === "Enterprise" ? "Custom" : `₹${plan.displayPrice}`}
-                    </span>
-                    {plan.name !== "Enterprise" && (
-                      <span className="text-muted-foreground text-sm">/{plan.billing_cycle === 'monthly' ? 'mo' : 'yr'}</span>
-                    )}
-                  </div>
-                  {plan.billing_cycle === 'yearly' && plan.name !== "Free" && plan.name !== "Enterprise" && (
-                    <p className="text-[10px] text-primary font-medium mt-1">
-                      Billed annually (Best Value)
-                    </p>
+            {/* Billing Cycle Toggle */}
+            <div className="inline-flex bg-secondary p-1 rounded-full border border-border mb-8">
+               <button
+                  onClick={() => setBillingCycle("monthly")}
+                  className={cn(
+                    "px-6 py-2 rounded-full text-sm font-bold transition-all",
+                    billingCycle === "monthly" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                   )}
-                  <p className="text-[10px] text-muted-foreground mt-3 uppercase font-bold tracking-widest leading-none">
-                    Best For: {plan.bestFor}
-                  </p>
-                </div>
+               >
+                 Monthly
+               </button>
+               <button
+                  onClick={() => setBillingCycle("yearly")}
+                  className={cn(
+                    "px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2",
+                    billingCycle === "yearly" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  )}
+               >
+                 Yearly <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase">Save 20%</span>
+               </button>
+            </div>
+        </div>
 
-                <div className="space-y-3 flex-grow mb-6">
-                  {plan.features.map((feature: any, i: number) => (
-                    <div key={i} className="flex gap-2 text-xs items-start leading-tight">
-                      <div className="mt-0.5 flex-shrink-0">
-                        <feature.icon className="h-3.5 w-3.5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-foreground font-medium">{feature.text}</p>
-                        {feature.highlight && (
-                          <p className="text-[10px] text-primary/80 font-bold">{feature.highlight}</p>
-                        )}
-                      </div>
+        {/* --- ADD-ONS SELECTION (Top Placement) --- */}
+        <div className="max-w-5xl mx-auto mb-16">
+            <div className="bg-white/60 backdrop-blur-md border border-border/50 rounded-3xl p-1 overflow-hidden">
+                 <div className="grid grid-cols-1 md:grid-flow-col md:auto-cols-fr divide-y md:divide-y-0 md:divide-x divide-border/50">
+                    
+                    {/* Platform Label (Visual Anchor) */}
+                    <div className="p-6 flex flex-col justify-center items-start md:items-center bg-secondary/20 rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none">
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Core Platform</span>
+                        <h3 className="text-2xl font-bold flex items-center gap-2">
+                             VaakuOS
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1">Included in all plans</p>
                     </div>
-                  ))}
+
+                    {/* Add-on 1 */}
+                    {currentAddons.map((addon) => {
+                        const isSelected = selectedAddons.includes(addon.id);
+                        const Icon = ICON_MAP[addon.icon];
+                        return (
+                            <div 
+                                key={addon.id}
+                                onClick={() => toggleAddon(addon.id)}
+                                className={cn(
+                                    "p-6 cursor-pointer transition-all relative group",
+                                    isSelected ? "bg-primary/[0.03]" : ""
+                                )}
+                            >
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn("p-2 rounded-lg transition-colors", isSelected ? "bg-primary text-white" : "bg-secondary text-muted-foreground")}>
+                                            <Icon className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <span className="font-bold block text-lg">{addon.name}</span>
+                                            <span className="text-xs font-bold text-primary p-0.5 border border-primary/20 rounded bg-primary/5">
+                                                 +{addon.price.toLocaleString()} {addon.period}
+                                             </span>
+                                         </div>
+                                    </div>
+                                    <div className={cn(
+                                        "h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all",
+                                        isSelected ? "border-primary bg-primary text-white" : "border-border group-hover:border-primary/50"
+                                    )}>
+                                        {isSelected && <Check className="h-3 w-3" />}
+                                    </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground leading-snug pl-[52px]">
+                                    {addon.description}
+                                </p>
+                            </div>
+                        )
+                    })}
+                 </div>
+            </div>
+        </div>
+
+        {/* --- Pricing Cards --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-24 max-w-[1400px] mx-auto">
+          {currentPlanSet.map((plan, idx) => {
+            const calculatedPrice = getCalculatedPrice(plan.price);
+            const isEnterprise = plan.price === null;
+            
+            return (
+            <motion.div
+              key={plan.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1, duration: 0.4 }}
+              className={cn(
+                "relative flex flex-col p-6 border backdrop-blur-md transition-all duration-300 rounded-2xl h-full",
+                plan.highlight 
+                  ? "bg-primary/5 border-primary shadow-xl shadow-primary/5 scale-105 z-10" 
+                  : "bg-white/60 border-border hover:border-primary/30 hover:shadow-lg z-0"
+              )}
+            >
+              {/* {plan.highlight && (
+                <div className="absolute top-0 left-0 w-full h-1 bg-primary rounded-t-2xl" />
+              )} */}
+              {plan.highlight && (
+                <div className="absolute top-3 right-3 text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full uppercase tracking-wider">
+                  Recommended
                 </div>
+              )}
 
-                <Button
-                  variant={plan.recommended ? "hero" : "outline"}
-                  className={`w-full ${plan.name === 'Free' ? 'h-10 text-sm' : 'h-11 text-md font-bold font-sans'}`}
-                  onClick={() => handlePurchase(plan)}
-                >
-                  {plan.cta}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+              <div className="mb-8">
+                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                <p className="text-sm text-muted-foreground min-h-[40px] leading-relaxed">
+                    {plan.description}
+                </p>
+              </div>
 
-                {plan.name !== "Free" && plan.name !== "Enterprise" && (
-                  <div className="mt-4 flex flex-col items-center gap-2">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Secure UPI Payment</p>
-                    <div className="flex items-center gap-3 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" className="h-3" />
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Google_Pay_Logo.svg" alt="GPay" className="h-3" />
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/7/71/PhonePe_Logo.svg" alt="PhonePe" className="h-3" />
+              <div className="mb-8">
+                <div className="flex items-end gap-1 mb-2">
+                  {!isEnterprise ? (
+                    <>
+                      <span className="text-4xl font-extrabold tracking-tight leading-none">
+                        ₹{calculatedPrice?.toLocaleString()}
+                      </span>
+                      <span className="text-muted-foreground font-medium text-sm mb-1">/mo</span>
+                    </>
+                  ) : (
+                    <span className="text-3xl font-extrabold tracking-tight leading-none">Custom</span>
+                  )}
+                </div>
+                
+                {/* One Time Fee Notice */}
+                {!isEnterprise && oneTimeFee > 0 && (
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Plus className="h-3 w-3" />
+                         ₹{oneTimeFee.toLocaleString()} one-time setup
                     </div>
-                  </div>
+                )}
+                
+                 {/* Billing Cycle Notice */}
+                {billingCycle === 'yearly' && !isEnterprise && calculatedPrice! > 0 && (
+                   <p className="text-xs text-primary font-medium mt-2">
+                     Billed annually (₹{(calculatedPrice! * 12).toLocaleString()}/yr)
+                   </p>
                 )}
               </div>
-            ))
 
-          ) : (
-            <div className="col-span-full text-center py-20 text-muted-foreground">
-              No plans available for this billing cycle.
-            </div>
-          )}
+              <Button
+                size="lg"
+                className={cn(
+                    "w-full font-bold h-11 rounded-lg mb-8",
+                    plan.highlight 
+                        ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" 
+                        : "bg-white border-2 border-primary/10 text-primary hover:bg-primary/5"
+                )}
+                onClick={() => handleCreatePlan(plan, calculatedPrice || 0)}
+              >
+                {plan.cta}
+              </Button>
+
+              <div className="space-y-4 flex-grow border-t border-border/50 pt-6">
+                 {/* Add-on Features Highlight */}
+                  <AnimatePresence>
+                    {selectedAddons.length > 0 && !isEnterprise && (
+                        <div className="space-y-3 mb-4 pb-4 border-b border-border/40 border-dashed">
+                             {currentAddons.map(addon => {
+                                 const isIncluded = selectedAddons.includes(addon.id);
+                                 if (!isIncluded) return null;
+                                 
+                                 // Find the first feature key that is true to display text
+                                 const featureKey = Object.keys(addon.features)[0];
+                                 const featureText = FEATURE_METADATA[featureKey]?.label || (addon as any).name;
+
+                                 return (
+                                 <motion.div 
+                                    key={addon.id}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    className="flex gap-3 text-sm font-semibold text-primary"
+                                 >
+                                    <div className="mt-0.5 p-0.5 bg-primary/10 rounded-full"><Plus className="h-3 w-3" /></div>
+                                    {featureText}
+                                 </motion.div>
+                                 )
+                             })}
+                        </div>
+                    )}
+                  </AnimatePresence>
+
+                 {/* Base Features */}
+                {Object.entries(plan.features).map(([key, value], i) => {
+                  const metadata = FEATURE_METADATA[key];
+                  if (!metadata) return null; // Skip if no metadata (or if it's internal)
+                  if (!value) return null; // Skip false values
+
+                  let displayText = metadata.label;
+                  if (metadata.type !== "boolean") {
+                      // e.g. "1,000 Monthly Messages"
+                      displayText = `${value} ${metadata.label}`;
+                  }
+
+                  return (
+                  <div key={i} className="flex gap-3 text-sm items-start">
+                    <div className="mt-0.5 flex-shrink-0 text-primary/60">
+                      <Check className="h-4 w-4" />
+                    </div>
+                    <span className="text-foreground/80 leading-tight">{displayText}</span>
+                  </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )})}
         </div>
 
 
-        <div className="text-center mb-16 -mt-8">
-            <p className="text-sm text-muted-foreground italic">
-                * Zero Markup applies to the specified monthly message limits. Beyond these limits, a nominal markup fee applies as indicated per plan. 
-                <span className="text-primary font-bold"> Enterprise plan includes 100% Unlimited Zero Markup.</span>
-            </p>
-        </div>
+        {/* --- Comparison Table --- */}
+        <div className="max-w-[1400px] mx-auto mb-20">
+            <h2 className="text-3xl font-bold my-10 text-center">Compare all features</h2>
+            
+            <div className="bg-white/60 backdrop-blur-md rounded-3xl border border-border/50 shadow-sm relative">
+                <TooltipProvider>
+                    {/* Desktop Sticky Header */}
+                    <div className="hidden md:grid grid-cols-5 gap-4 sticky top-16 z-40 bg-[#FDFBF9] shadow-md border-b border-border/10 py-4 px-2 rounded-t-3xl">
+                        <div className="col-span-1 p-2 text-sm font-bold text-muted-foreground uppercase tracking-widest self-end">
+                            Features
+                        </div>
+                        
+                        {/* Plan Columns with Buttons */}
+                        {currentPlanSet.map((plan, idx) => (
+                            <div key={plan.id} className="col-span-1 p-2 text-center flex flex-col items-center justify-end h-full">
+                                <span className={cn(
+                                    "font-bold text-xl mb-2",
+                                    plan.highlight ? "text-primary" : "text-foreground"
+                                )}>
+                                    {plan.name}
+                                </span>
+                                {plan.highlight && (
+                                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase mb-2">
+                                        Popular
+                                    </span>
+                                )}
+                                <Button
+                                    size="sm"
+                                    onClick={() => handlePurchaseByIndex(idx)}
+                                    className={cn(
+                                        "w-full max-w-[140px] rounded-lg h-9 font-semibold",
+                                        plan.highlight ? "bg-primary text-white" : "bg-white border border-primary/20 text-primary hover:bg-primary/5"
+                                    )}
+                                >
+                                    {plan.price === null ? "Contact" : "Choose"}
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
 
-        {/* Competitive Edge Section */}
-        <div className="mb-24">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">The Vaakuos Advantage</h2>
-            <p className="text-muted-foreground">Why disruptive brands choose us over Wati, Interakt, or AiSensy.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-8 rounded-2xl bg-secondary/50 border border-border">
-              <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center mb-6">
-                <UserPlus className="h-6 w-6 text-primary" />
-              </div>
-              <h4 className="text-xl font-bold mb-3">Unlimited Agents</h4>
-              <p className="text-muted-foreground leading-relaxed">
-                Most platforms charge ₹500–₹800 per extra agent. We give you <span className="text-foreground font-semibold">Unlimited Seats</span> in our Growth plan. Let your whole team sell & support.
-              </p>
-            </div>
-            <div className="p-8 rounded-2xl bg-secondary/50 border border-border">
-              <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center mb-6">
-                <Sparkles className="h-6 w-6 text-primary" />
-              </div>
-              <h4 className="text-xl font-bold mb-3">0% Markup on Meta</h4>
-              <p className="text-muted-foreground leading-relaxed">
-                We follow a Transparent Pricing Model. We pass on Meta charges with <span className="text-foreground font-semibold">Zero Markup</span> on the Growth plan. Pay exactly what Meta charges.
-              </p>
-            </div>
-            <div className="p-8 rounded-2xl bg-secondary/50 border border-border">
-              <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center mb-6">
-                <ShieldCheck className="h-6 w-6 text-primary" />
-              </div>
-              <h4 className="text-xl font-bold mb-3">Free Zero-Friction Migration</h4>
-              <p className="text-muted-foreground leading-relaxed">
-                Moving from another provider? We port your number and help with Green Tick assistance for <span className="text-foreground font-semibold">₹0 Service Fee</span>.
-              </p>
-            </div>
-          </div>
-        </div>
+                    <div className="divide-y divide-border/50">
+                    {COMPARISON_CONFIG.map((category, idx) => (
+                        <div key={idx}>
+                        {/* Category Header */}
+                        <div className="bg-secondary/20 p-4 border-y border-border/20 sticky top-[164px] z-30 backdrop-blur-sm">
+                            <h3 className="text-lg font-bold text-foreground">
+                                {category.title}
+                            </h3>
+                        </div>
+                        
+                        {/* Rows */}
+                        <div className="divide-y divide-border/10 bg-white/40">
+                            {category.rows.map((row, rIdx) => {
+                                const metadata = FEATURE_METADATA[row.key];
+                                return (
+                                <div key={rIdx} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center p-4 hover:bg-secondary/10 transition-colors group">
+                                    
+                                    {/* Feature Name */}
+                                    <div className="col-span-1 font-medium text-foreground text-sm flex items-center gap-2">
+                                    {metadata?.label || row.key}
+                                    {row.help && (
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                            <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                            <p className="w-48 text-xs">{row.help}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                    </div>
 
-        {/* WhatsApp Meta Rates Section */}
-        <div className="bg-background/80 backdrop-blur-xl rounded-3xl border border-border p-8 md:p-12 mb-24 shadow-2xl">
-          <div className="flex flex-col md:flex-row gap-12 items-center">
-            <div className="md:w-1/3">
-              <h2 className="text-3xl font-bold mb-4">Meta Conversation Rates</h2>
-              <p className="text-muted-foreground mb-6">
-                Vaakuos provides 0% Markup. You only pay the actual rates determined by Meta based on the conversation category.
-              </p>
-              <div className="inline-flex items-center gap-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
-                <Info className="h-5 w-5 text-primary" />
-                <span className="text-sm font-medium">Rates for India (approximate)</span>
-              </div>
-            </div>
-            <div className="md:w-2/3 w-full">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="pb-4 font-bold">Category</th>
-                      <th className="pb-4 font-bold">What is it?</th>
-                      <th className="pb-4 font-bold">Estimated Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {metaRates.map((rate) => (
-                      <tr key={rate.category} className="group">
-                        <td className="py-5 font-semibold text-primary">{rate.category}</td>
-                        <td className="py-5 text-muted-foreground text-sm pr-4">{rate.definition}</td>
-                        <td className="py-5 font-mono font-bold text-foreground whitespace-nowrap">{rate.rate}</td>
-                      </tr>
+                                    {/* Values */}
+                                    {currentPlanSet.map((plan, pIdx) => (
+                                        <div key={plan.id} className={cn(
+                                            "col-span-1 text-center text-sm",
+                                            pIdx === 2 ? "font-semibold relative" : "" // Team plan index assumption or logic
+                                        )}>
+                                            <span className="md:hidden text-muted-foreground text-xs mr-2 font-bold uppercase">{plan.name}:</span>
+                                            {/* Desktop Highlight Column Background for Team (index 2) */}
+                                            {pIdx === 2 && (
+                                                <div className="absolute inset-y-0 -left-2 -right-2 bg-primary/5 hidden md:block -z-10 group-hover:bg-primary/10 transition-colors pointer-events-none" />
+                                            )}
+                                            {renderCell(plan.features[row.key as keyof typeof plan.features] || false)}
+                                        </div>
+                                    ))}
+                                </div>
+                                );
+                            })}
+                        </div>
+                        </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="mt-8 text-xs text-muted-foreground text-center">
-                * Note: The first 1,000 Service Conversations per month are provided <span className="text-success font-bold">FREE of charge</span> by Meta.
-              </p>
+                    </div>
+                </TooltipProvider>
             </div>
-          </div>
         </div>
 
-        {/* Add-ons & AI Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-24">
-          <div className="p-8 rounded-3xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
-                <Bot className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold">AI Smart Reply (GPT-4o)</h3>
-                <p className="text-primary font-medium">₹999 /mo</p>
-              </div>
-            </div>
-            <p className="text-muted-foreground mb-6 leading-relaxed">
-              Enable the most advanced AI agent for your WhatsApp. Includes <span className="font-bold">1,000 AI responses</span> per month using the latest GPT-4o model.
-            </p>
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-center gap-2 text-sm font-medium">
-                <Check className="h-4 w-4 text-primary" /> Context-aware customer support
-              </li>
-              <li className="flex items-center gap-2 text-sm font-medium">
-                <Check className="h-4 w-4 text-primary" /> Multi-lingual understanding
-              </li>
-            </ul>
-            <Button variant="outline" className="w-full border-primary/20 hover:bg-primary/5">Learn about AI</Button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-6 rounded-2xl bg-secondary/30 border border-border">
-              <h4 className="font-bold mb-1">Custom Bot Dev</h4>
-              <p className="text-primary font-bold text-lg mb-2">₹4,999</p>
-              <p className="text-xs text-muted-foreground">One-time fee. We build your entire automation flow for you.</p>
-            </div>
-            <div className="p-6 rounded-2xl bg-secondary/30 border border-border">
-              <h4 className="font-bold mb-1">CTWA Ads Setup</h4>
-              <p className="text-primary font-bold text-lg mb-2">₹1,500/mo</p>
-              <p className="text-xs text-muted-foreground">Expert management of Meta ads leading to WhatsApp.</p>
-            </div>
-            <div className="p-6 rounded-2xl bg-secondary/30 border border-border sm:col-span-2">
-              <h4 className="font-bold mb-1">White-Label Dashboard</h4>
-              <p className="text-primary font-bold text-lg mb-2">Starting ₹9,999/mo</p>
-              <p className="text-xs text-muted-foreground">For agencies who want to resell Vaakuos under their own brand.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* FAQ/Trust CTA */}
-        <div className="text-center bg-primary text-primary-foreground p-12 rounded-[3rem] shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 bg-black/10 rounded-full blur-3xl" />
-          
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 relative z-10">Still have questions?</h2>
-          <p className="text-primary-foreground/80 text-lg mb-8 max-w-2xl mx-auto relative z-10">
-            Our team is ready to help you find the perfect plan for your business goals. 
-            Join 500+ brands scaling with Vaakuos.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-            <Button 
-                variant="secondary" 
-                size="xl" 
-                className="font-extrabold w-full sm:w-auto"
-                onClick={() => navigate("/register-interest")}
-            >
-              Start Your Free Trial
-            </Button>
-            <Button variant="ghost" className="text-primary-foreground hover:bg-white/10 w-full sm:w-auto">
-              Schedule a Demo
-            </Button>
-          </div>
-        </div>
       </main>
 
       <Footer />
     </div>
   );
 };
+
+const renderCell = (value: string | boolean) => {
+    if (value === true) return <CheckCircle2 className="h-5 w-5 text-primary mx-auto" />;
+    if (value === false) return <span className="text-muted-foreground/20 text-xl font-light">—</span>;
+    return <span className="text-foreground/90 font-medium">{value}</span>;
+}
 
 export default Pricing;
