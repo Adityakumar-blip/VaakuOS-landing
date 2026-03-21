@@ -4,10 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, MessageCircle, MapPin, ArrowRight } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const Contact = () => {
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Contact VaakuOS"
+        description="Talk to VaakuOS about demos, pricing, partnerships, or support—we typically respond within 2 hours."
+        canonicalPath="/contact"
+      />
       <Navigation />
       
       <main className="pt-32 pb-20">
@@ -64,17 +70,17 @@ const Contact = () => {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-muted-foreground ml-1">First Name</label>
-                    <Input placeholder="John" className="py-6 rounded-xl border-border bg-muted/30" />
+                    <Input placeholder="John" aria-label="First Name" className="py-6 rounded-xl border-border bg-muted/30" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-muted-foreground ml-1">Last Name</label>
-                    <Input placeholder="Doe" className="py-6 rounded-xl border-border bg-muted/30" />
+                    <Input placeholder="Doe" aria-label="Last Name" className="py-6 rounded-xl border-border bg-muted/30" />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-muted-foreground ml-1">Work Email</label>
-                  <Input placeholder="john@company.com" className="py-6 rounded-xl border-border bg-muted/30" />
+                  <Input placeholder="john@company.com" aria-label="Work Email" className="py-6 rounded-xl border-border bg-muted/30" />
                 </div>
 
                 {/* <div className="space-y-2">
@@ -89,7 +95,7 @@ const Contact = () => {
 
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-muted-foreground ml-1">Message</label>
-                  <Textarea placeholder="Tell us about your retrieval goals..." className="min-h-[150px] rounded-xl border-border bg-muted/30 p-4" />
+                  <Textarea placeholder="Tell us about your retrieval goals..." aria-label="Message" className="min-h-[150px] rounded-xl border-border bg-muted/30 p-4" />
                 </div>
 
                 <Button className="w-full py-8 rounded-2xl text-lg font-bold bg-primary hover:bg-primary/90 text-white transition-all transform hover:scale-[1.02]">

@@ -16,7 +16,7 @@ export const Footer = () => {
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-                <img src={whiteFull} alt="vaakuos logo" />
+                <img src={whiteFull} alt="VaakuOS logo" width={120} height={120} loading="lazy" />
               </div>
               <span className="text-xl font-bold text-foreground">VaakuOS</span>
             </div>
@@ -75,7 +75,7 @@ export const Footer = () => {
 
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2026 VaakuOS. All rights reserved.
+            © 2026 VaakuOS. An Unsolved Technologies LLP company. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">

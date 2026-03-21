@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search, Puzzle, ArrowRight } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const Integrations = () => {
   const categories = [
@@ -37,6 +38,11 @@ const Integrations = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Integrations that fit your stack"
+        description="Connect VaakuOS with Shopify, HubSpot, Salesforce, Slack, and more to recover revenue without heavy lift."
+        canonicalPath="/integrations"
+      />
       <Navigation />
       
       <main className="pt-32 pb-20">
@@ -56,6 +62,7 @@ const Integrations = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
             <Input 
               placeholder="Search for an integration..." 
+              aria-label="Search integrations"
               className="pl-12 py-6 rounded-full border-border bg-card/50"
             />
           </div>

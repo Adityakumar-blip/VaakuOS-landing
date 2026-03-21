@@ -1,0 +1,4 @@
+display_name: SEO Manager
+short_description: Audit and fix on-page + technical SEO for this site.
+default_prompt: |-
+  Use the seo-manager skill to audit the current repo (metadata, headings, schema, robots/sitemap, performance), then implement the highest-impact fixes and report what changed and how to verify.

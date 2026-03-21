@@ -156,9 +156,9 @@ export const PricingSection = () => {
                 {plan.name !== "Free" && plan.name !== "Enterprise" && (
                   <div className="mt-4 flex flex-col items-center gap-1.5">
                     <div className="flex items-center gap-2 opacity-40 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-default">
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" className="h-2.5" />
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Google_Pay_Logo.svg" alt="GPay" className="h-2.5" />
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/7/71/PhonePe_Logo.svg" alt="PhonePe" className="h-2.5" />
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" className="h-2.5" loading="lazy" width={48} height={10} />
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Google_Pay_Logo.svg" alt="GPay" className="h-2.5" loading="lazy" width={48} height={10} />
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/7/71/PhonePe_Logo.svg" alt="PhonePe" className="h-2.5" loading="lazy" width={48} height={10} />
                     </div>
                   </div>
                 )}
