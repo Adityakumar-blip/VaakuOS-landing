@@ -20,6 +20,7 @@ const BlogDetails = () => {
     queryFn: () => blogService.getBySlug(slug || ""),
     enabled: !!slug,
   });
+  const siteUrl = import.meta.env.VITE_SITE_URL ?? "https://vaakuos.com";
 
   return (
     <div className="min-h-screen">
@@ -55,9 +56,24 @@ const BlogDetails = () => {
                 ogTitle={post.meta_title || post.title}
                 ogDescription={post.meta_description || post.excerpt || post.title}
                 ogImage={post.featured_image}
+                ogUrl={`/blog/${post.slug}`}
+                canonicalPath={`/blog/${post.slug}`}
                 twitterTitle={post.meta_title || post.title}
                 twitterDescription={post.meta_description || post.excerpt || post.title}
                 twitterImage={post.featured_image}
+                structuredData={{
+                  "@context": "https://schema.org",
+                  "@type": "Article",
+                  "headline": post.title,
+                  "description": post.meta_description || post.excerpt || post.title,
+                  "image": post.featured_image ? [post.featured_image] : [`${siteUrl}/og-image.png`],
+                  "datePublished": post.created_at,
+                  "author": {
+                    "@type": "Person",
+                    "name": post.author?.name || "VaakuOS"
+                  },
+                  "mainEntityOfPage": `${siteUrl}/blog/${post.slug}`
+                }}
               />
               <article>
               <header className="mb-12">
@@ -107,6 +123,10 @@ const BlogDetails = () => {
                   <img
                     src={post.featured_image}
                     alt={post.title}
+                    loading="lazy"
+                    decoding="async"
+                    width={1280}
+                    height={720}
                     className="w-full h-auto aspect-video object-cover"
                   />
                 </div>
@@ -132,6 +152,7 @@ const BlogDetails = () => {
                   <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
                     <input
                       placeholder="Enter your email"
+                      aria-label="Email address"
                       className="flex-1 px-6 py-4 rounded-full bg-muted border border-border focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
                     <button className="px-8 py-4 bg-primary text-white font-bold rounded-full hover:opacity-90 transition-all">

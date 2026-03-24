@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, Zap, Shield, MousePointer2, Gauge, Globe } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const Features = () => {
   const deepDiveFeatures = [
@@ -40,6 +41,11 @@ const Features = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      <SEO
+        title="Features built to recover revenue"
+        description="Explore VaakuOS features: intent tracking, personalized re-engagement, omnichannel automation, and enterprise-grade security."
+        canonicalPath="/features"
+      />
       <Navigation />
       
       <main className="pt-32 pb-20">

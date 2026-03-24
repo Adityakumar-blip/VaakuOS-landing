@@ -114,6 +114,8 @@ export const HeroSection = () => {
           <img
             src={heroDashboard}
             alt="Vaakuos Omnichannel Dashboard"
+            width={1600}
+            height={900}
             className="relative rounded-xl md:rounded-2xl shadow-2xl border border-border w-full"
           />
         </motion.div>

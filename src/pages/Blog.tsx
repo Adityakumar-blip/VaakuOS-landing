@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { blogService } from "@/services/blog-service";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 
 const Blog = () => {
   const {
@@ -23,6 +24,11 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Blog: conversion and recovery insights"
+        description="Read VaakuOS insights, case studies, and playbooks on recovering abandoned sales and scaling e-commerce revenue."
+        canonicalPath="/blog"
+      />
       <Navigation />
 
       <main className="pt-32 pb-20">
@@ -111,6 +117,9 @@ const Blog = () => {
                               <img
                                 src={post.author.avatar}
                                 alt={post.author.name}
+                                loading="lazy"
+                                width={32}
+                                height={32}
                                 className="h-full w-full object-cover"
                               />
                             )}
@@ -159,6 +168,7 @@ const Blog = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <input
                 placeholder="Enter your email"
+                aria-label="Email address"
                 className="flex-1 px-6 py-4 rounded-full bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/50"
               />
               <button className="px-8 py-4 bg-white text-primary font-bold rounded-full hover:bg-opacity-90 transition-all">

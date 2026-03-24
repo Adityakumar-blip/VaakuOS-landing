@@ -1,6 +1,7 @@
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Users, Target, Rocket, Heart } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const About = () => {
   const values = [
@@ -28,6 +29,12 @@ const About = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="About VaakuOS"
+        description="Meet the team building VaakuOS—the intent-driven engine helping brands recover abandoned revenue with respectful, timely outreach."
+        canonicalPath="/about"
+        ogImage="https://vaakuos.com/og-about.jpg"
+      />
       <Navigation />
       
       <main className="pt-32 pb-20">
