@@ -26,7 +26,11 @@ import Contact from "./pages/Contact";
 import Documentation from "./pages/Documentation";
 import HelpCenter from "./pages/HelpCenter";
 import Community from "./pages/Community";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
+
+import { BookDemoProvider } from "@/contexts/BookDemoContext";
 
 const queryClient = new QueryClient();
 
@@ -50,66 +54,71 @@ const AnalyticsTracker = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Helmet
-        defaultTitle="VaakuOS | Recover every abandoned sale"
-        titleTemplate="%s | VaakuOS"
-      >
-        <meta
-          name="description"
-          content="VaakuOS tracks intent and re-engages shoppers at the right moment across every channel to recover abandoned revenue."
-        />
-        <link rel="canonical" href={siteUrl} />
-        <meta name="robots" content="index,follow" />
-        <meta name="theme-color" content="#0f172a" />
-        <meta property="og:site_name" content="VaakuOS" />
-        <meta property="og:title" content="VaakuOS | Recover every abandoned sale" />
-        <meta
-          property="og:description"
-          content="Recover lost revenue with VaakuOS—an intelligent engine that rescues abandoned carts and conversations."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={siteUrl} />
-        <meta property="og:image" content={defaultOgImage} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="VaakuOS | Recover every abandoned sale" />
-        <meta
-          name="twitter:description"
-          content="Recover lost revenue with VaakuOS—an intelligent engine that rescues abandoned carts and conversations."
-        />
-        <meta name="twitter:image" content={defaultOgImage} />
-      </Helmet>
-      <Toaster />
-      <Sonner />
-      <SmoothScroll>
-        <BrowserRouter>
-          <AnalyticsTracker />
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/calculator" element={<CalculatorPage />} />
-            <Route path="/register-interest" element={<RegisterInterest />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/cookie-policy" element={<CookiePolicy />} />
-            <Route path="/features" element={<Features />} />
-            <Route path="/integrations" element={<Integrations />} />
-            <Route path="/changelog" element={<Changelog />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogDetails />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/documentation" element={<Documentation />} />
-            <Route path="/help-center" element={<HelpCenter />} />
-            <Route path="/community" element={<Community />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </SmoothScroll>
-    </TooltipProvider>
+    <BookDemoProvider>
+      <TooltipProvider>
+        <Helmet
+          defaultTitle="VaakuOS | Recover every abandoned sale"
+          titleTemplate="%s | VaakuOS"
+        >
+          {/* ... existing helmet content ... */}
+          <meta
+            name="description"
+            content="VaakuOS tracks intent and re-engages shoppers at the right moment across every channel to recover abandoned revenue."
+          />
+          <link rel="canonical" href={siteUrl} />
+          <meta name="robots" content="index,follow" />
+          <meta name="theme-color" content="#0f172a" />
+          <meta property="og:site_name" content="VaakuOS" />
+          <meta property="og:title" content="VaakuOS | Recover every abandoned sale" />
+          <meta
+            property="og:description"
+            content="Recover lost revenue with VaakuOS—an intelligent engine that rescues abandoned carts and conversations."
+          />
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content={siteUrl} />
+          <meta property="og:image" content={defaultOgImage} />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="VaakuOS | Recover every abandoned sale" />
+          <meta
+            name="twitter:description"
+            content="Recover lost revenue with VaakuOS—an intelligent engine that rescues abandoned carts and conversations."
+          />
+          <meta name="twitter:image" content={defaultOgImage} />
+        </Helmet>
+        <Toaster />
+        <Sonner />
+        <SmoothScroll>
+          <BrowserRouter>
+            <AnalyticsTracker />
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/calculator" element={<CalculatorPage />} />
+              <Route path="/register-interest" element={<RegisterInterest />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/cookie-policy" element={<CookiePolicy />} />
+              <Route path="/features" element={<Features />} />
+              <Route path="/integrations" element={<Integrations />} />
+              <Route path="/changelog" element={<Changelog />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogDetails />} />
+              <Route path="/careers" element={<Careers />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/documentation" element={<Documentation />} />
+              <Route path="/help-center" element={<HelpCenter />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </SmoothScroll>
+      </TooltipProvider>
+    </BookDemoProvider>
   </QueryClientProvider>
 );
 

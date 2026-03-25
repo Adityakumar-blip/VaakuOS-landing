@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useBookDemo } from "@/contexts/BookDemoContext";
 
 const benefits = [
   "Set up in under 5 minutes",
@@ -12,6 +13,7 @@ const benefits = [
 
 export const CTASection = () => {
   const navigate = useNavigate();
+  const { openBookDemo } = useBookDemo();
 
   return (
     <section className="py-20 px-4 relative overflow-hidden">
@@ -38,12 +40,12 @@ export const CTASection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
-            <Button variant="hero" size="xl" className="group w-full sm:w-auto" onClick={() => navigate("/register-interest")}>
-              Start Free Trial
+            <Button variant="hero" size="xl" className="group w-full sm:w-auto" onClick={openBookDemo}>
+              Book Live Demo
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="outline" size="xl" className="w-full sm:w-auto" onClick={() => navigate("/register-interest")}>
-              Schedule a Demo
+            <Button variant="outline" size="xl" className="w-full sm:w-auto" onClick={openBookDemo}>
+              Contact Sales
             </Button>
           </div>
 

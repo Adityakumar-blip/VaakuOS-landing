@@ -4,9 +4,11 @@ import heroDashboard from "@/assets/hero-dashboard.png";
 import { FrostedBackground } from "@/components/FrostedBackground";
 import { useNavigate } from "react-router-dom";
 import { motion, Variants } from "framer-motion";
+import { useBookDemo } from "@/contexts/BookDemoContext";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
+  const { openBookDemo } = useBookDemo();
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -45,7 +47,7 @@ export const HeroSection = () => {
           <motion.div 
             variants={itemVariants}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-8 cursor-pointer hover:bg-primary/15 transition-colors group"
-            onClick={() => navigate("/register-interest")}
+            onClick={() => navigate("/login")}
           >
             <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
             <span className="text-xs md:text-sm font-medium text-primary">
@@ -74,8 +76,8 @@ export const HeroSection = () => {
             variants={itemVariants}
             className="flex flex-row items-center justify-center gap-3 px-2 sm:px-0"
           >
-            <Button variant="hero" size="lg" className="group flex-1 sm:flex-none text-sm sm:text-base px-6 py-4 h-auto" onClick={() => navigate("/register-interest")}>
-              Start Free Trial
+            <Button variant="hero" size="lg" className="group flex-1 sm:flex-none text-sm sm:text-base px-6 py-4 h-auto" onClick={openBookDemo}>
+              Book Live Demo
               <ArrowRight className="ml-1.5 h-2 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button 

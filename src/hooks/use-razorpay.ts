@@ -28,7 +28,7 @@ export const useRazorpay = () => {
             if (!token) {
                 toast.error("Please login to purchase a plan");
                 setTimeout(() => {
-                    window.location.href = "http://localhost:8080/login"; // Redirect to app login
+                    navigate("/login");
                 }, 1500);
                 return;
             }
@@ -41,6 +41,7 @@ export const useRazorpay = () => {
                 },
                 body: JSON.stringify({
                     plan_id: plan.id,
+                    billing_cycle: plan.billing_cycle
                 }),
             });
 
@@ -58,7 +59,7 @@ export const useRazorpay = () => {
                 description: `${plan.name} Subscription`,
                 handler: () => {
                     toast.success("Subscription successful!");
-                    window.location.href = "http://localhost:8080/dashboard";
+                    window.location.href = "https://app.vaakuos.com/dashboard";
                 },
             };
 

@@ -21,10 +21,13 @@ interface Plan {
 }
 
 
+import { useBookDemo } from "@/contexts/BookDemoContext";
+
 export const PricingSection = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const { initiatePurchase } = useRazorpay();
+  const { openBookDemo } = useBookDemo();
 
   const { data: apiPlans, isLoading } = useQuery<Plan[]>({
     queryKey: ["plans"],
@@ -37,7 +40,12 @@ export const PricingSection = () => {
   });
 
   const handlePurchase = async (plan: Plan) => {
-    await initiatePurchase(plan);
+    if (plan.name === "Enterprise" || plan.name === "Custom") {
+      openBookDemo();
+      return;
+    }
+    // Navigate to login before purchase for landing page with params
+    navigate(`/login?planId=${plan.id}&billingCycle=${billingCycle}`);
   };
 
 

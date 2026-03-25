@@ -4,6 +4,7 @@ import whiteFull from "@/assets/white_full.png";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useBookDemo } from "@/contexts/BookDemoContext";
 import {
   Sheet,
   SheetContent,
@@ -15,11 +16,12 @@ import {
 export const Navigation = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const { openBookDemo } = useBookDemo();
 
   const navItems = [
-    { label: "Features", path: "/features" },
+    // { label: "Features", path: "/features" },
     { label: "Integrations", path: "/integrations" },
-    // { label: "Pricing", path: "/pricing" },
+    { label: "Pricing", path: "/pricing" },
     { label: "Calculator", path: "/calculator" },
     // { label: "Journal", path: "/blog" },
   ];
@@ -86,16 +88,16 @@ export const Navigation = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/register-interest")}
+                onClick={() => navigate("/login")}
               >
                 Sign In
               </Button>
               <Button
                 variant="hero"
                 size="sm"
-                onClick={() => navigate("/register-interest")}
+                onClick={openBookDemo}
               >
-                Get Started
+                Book Live Demo
               </Button>
             </div>
 
@@ -164,7 +166,7 @@ export const Navigation = () => {
                           variant="outline"
                           className="w-full h-12 rounded-xl font-bold"
                           onClick={() => {
-                            navigate("/register-interest");
+                            navigate("/login");
                             setIsOpen(false);
                           }}
                         >
@@ -174,11 +176,11 @@ export const Navigation = () => {
                           variant="hero"
                           className="w-full h-12 rounded-xl font-bold shadow-lg shadow-primary/20"
                           onClick={() => {
-                            navigate("/register-interest");
+                            openBookDemo();
                             setIsOpen(false);
                           }}
                         >
-                          Get Started
+                          Book Live Demo
                         </Button>
                       </div>
                       <p className="text-center text-xs text-muted-foreground mt-6">
