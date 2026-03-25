@@ -44,27 +44,29 @@ const Index = () => {
         structuredData={[orgSchema, websiteSchema]}
       />
       <Navigation />
-      <HeroSection />
+      <main id="main-content">
+        <HeroSection />
 
-      <ScrollReveal>
-        <StatsComparison />
-      </ScrollReveal>
+        <ScrollReveal>
+          <StatsComparison />
+        </ScrollReveal>
 
-      <ScrollReveal delay={0.3}>
-        <FeaturesSection />
-      </ScrollReveal>
+        <ScrollReveal delay={0.3}>
+          <FeaturesSection />
+        </ScrollReveal>
 
-      <ScrollReveal>
-        <IntegrationsSection />
-      </ScrollReveal>
+        <ScrollReveal>
+          <IntegrationsSection />
+        </ScrollReveal>
 
-      {/* <ScrollReveal delay={0.3}>
-        <PricingSection />
-      </ScrollReveal> */}
+        {/* <ScrollReveal delay={0.3}>
+          <PricingSection />
+        </ScrollReveal> */}
 
-      <ScrollReveal>
-        <CTASection />
-      </ScrollReveal>
+        <ScrollReveal>
+          <CTASection />
+        </ScrollReveal>
+      </main>
 
       {/* <AnalyticsTest /> */}
       <Footer />

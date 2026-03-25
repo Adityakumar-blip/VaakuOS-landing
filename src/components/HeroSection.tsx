@@ -4,9 +4,11 @@ import heroDashboard from "@/assets/hero-dashboard.png";
 import { FrostedBackground } from "@/components/FrostedBackground";
 import { useNavigate } from "react-router-dom";
 import { motion, Variants } from "framer-motion";
+import { useBookDemo } from "@/contexts/BookDemoContext";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
+  const { openBookDemo } = useBookDemo();
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -20,12 +22,12 @@ export const HeroSection = () => {
 
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { 
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
         duration: 0.5
-      } 
+      }
     },
   };
 
@@ -35,17 +37,17 @@ export const HeroSection = () => {
       <FrostedBackground />
 
       <div className="container mx-auto max-w-6xl relative z-10">
-        <motion.div 
+        <motion.div
           className="text-center mb-12"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           {/* Announcement Badge */}
-          <motion.div 
+          <motion.div
             variants={itemVariants}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-8 cursor-pointer hover:bg-primary/15 transition-colors group"
-            onClick={() => navigate("/register-interest")}
+            onClick={() => navigate("/login")}
           >
             <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
             <span className="text-xs md:text-sm font-medium text-primary">
@@ -54,7 +56,7 @@ export const HeroSection = () => {
             <ArrowRight className="h-3 w-3 text-primary group-hover:translate-x-0.5 transition-transform" />
           </motion.div>
 
-          <motion.h1 
+          <motion.h1
             variants={itemVariants}
             className="text-4xl sm:text-5xl md:text-7xl font-medium text-foreground mb-6 leading-[1.1] tracking-tight"
           >
@@ -63,23 +65,23 @@ export const HeroSection = () => {
             Recover Every Abandoned Sale.
           </motion.h1>
 
-          <motion.p 
+          <motion.p
             variants={itemVariants}
             className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8"
           >
             VaakuOS tracks intent, re-engages shoppers at the right moment, and converts missed purchases across every digital touchpoint.
           </motion.p>
-          
-          <motion.div 
+
+          <motion.div
             variants={itemVariants}
             className="flex flex-row items-center justify-center gap-3 px-2 sm:px-0"
           >
-            <Button variant="hero" size="lg" className="group flex-1 sm:flex-none text-sm sm:text-base px-6 py-4 h-auto" onClick={() => navigate("/register-interest")}>
-              Start Free Trial
+            <Button variant="hero" size="lg" className="group flex-1 sm:flex-none text-sm sm:text-base px-6 py-4 h-auto" onClick={openBookDemo}>
+              Book Live Demo
               <ArrowRight className="ml-1.5 h-2 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="lg"
               className="flex-1 sm:flex-none text-sm sm:text-base px-6 py-4 h-auto"
               onClick={() => navigate("/calculator")}
@@ -88,7 +90,7 @@ export const HeroSection = () => {
             </Button>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             variants={itemVariants}
             className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-muted-foreground"
           >

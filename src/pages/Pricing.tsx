@@ -4,21 +4,14 @@ import { FrostedBackground } from "@/components/FrostedBackground";
 import { Button } from "@/components/ui/button";
 import {
   Check,
-  Sparkles,
   CheckCircle2,
-  Bot,
-  Plus,
-  X,
-  ChevronDown,
-  HelpCircle,
   Info,
   ArrowUpRight,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useRazorpay } from "@/hooks/use-razorpay";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Tooltip,
   TooltipContent,
@@ -29,234 +22,59 @@ import { SEO } from "@/components/SEO";
 
 // --- Configuration ---
 
-const ICON_MAP: Record<string, any> = {
-  Bot: Bot,
-  Sparkles: Sparkles,
-};
+import { PRICING_DATA } from "@/data/pricing-plans";
 
-const FEATURE_METADATA: Record<
-  string,
-  { label: string; type?: "boolean" | "text"; suffix?: string }
-> = {
+const FEATURE_METADATA: Record<string, { label: string; type?: "boolean" | "text" }> = {
+  api_access: { label: "API Access", type: "boolean" },
+  max_agents: { label: "Max Agents" },
+  max_contacts: { label: "Max Contacts" },
+  max_campaigns: { label: "Max Campaigns" },
   monthly_messages: { label: "Monthly Messages" },
-  user_agents: { label: "User Agents" },
-  bot_automation: { label: "Automation" },
-  support: { label: "Support Level" },
-  branding: { label: "No Branding", type: "boolean" },
-  webhooks: { label: "Webhooks", type: "boolean" },
-  broadcasts: { label: "Broadcasts", type: "boolean" },
-  shared_inbox: { label: "Shared Inbox", type: "boolean" },
-  shared_workflows: { label: "Shared Workflows", type: "boolean" },
-  zero_markup: { label: "Zero Meta Markup", type: "boolean" },
-  dedicated_support: { label: "Dedicated Support", type: "boolean" },
-  role_based_access: { label: "Role Based Access", type: "boolean" },
-  unlimited_volume: { label: "Unlimited Volume", type: "boolean" },
-  sso: { label: "SSO (SAML)", type: "boolean" },
-  custom_contracts: { label: "Custom Contracts", type: "boolean" },
-  dedicated_manager: { label: "Dedicated Success Manager", type: "boolean" },
-  onboarding: { label: "Onboarding Session", type: "boolean" },
-  ai_replies: { label: "AI Copilot Enabled", type: "boolean" },
-  setup_assist: { label: "Priority Expert Setup", type: "boolean" },
-  max_team: { label: "Email" },
-  max_teams: { label: "Instagram" },
-  max_team_member: { label: "WhatsApp" },
-  max_team_members: { label: "Facebook" },
+  priority_support: { label: "Priority Support", type: "boolean" },
+  broadcast_enabled: { label: "Broadcast Enabled", type: "boolean" },
+  markup_per_message: { label: "Markup Per Message" },
+  monthly_ai_replies: { label: "Monthly AI Replies" },
 };
 
 const COMPARISON_CONFIG = [
   {
-    title: "Messaging & Automation",
+    title: "Usage & Limits",
     rows: [
-      {
-        key: "monthly_messages",
-        help: "Number of conversations you can initiate.",
-      },
-      { key: "zero_markup", help: "Pay direct Meta rates with no extra fees." },
-      { key: "broadcasts" },
-      { key: "webhooks" },
+      { key: "monthly_messages", help: "Total monthly WhatsApp messages allowed." },
+      { key: "max_contacts", help: "Maximum number of contacts/leads you can store." },
+      { key: "max_agents", help: "Number of team members who can access the dashboard." },
+      { key: "max_campaigns", help: "Number of active broadcast campaigns allowed." },
+      { key: "monthly_ai_replies", help: "Number of AI-powered automated replies per month." },
     ],
   },
   {
-    title: "Team & Security",
+    title: "Features & Support",
     rows: [
-      { key: "user_agents" },
-      { key: "shared_inbox" },
-      { key: "role_based_access" },
-      { key: "sso" },
-    ],
-  },
-  {
-    title: "Support & Services",
-    rows: [{ key: "support" }, { key: "onboarding" }],
-  },
-  {
-    title: "Omnichannel Features",
-    rows: [
-      { key: "max_team", help: "Email integration status" },
-      { key: "max_teams", help: "Instagram integration status" },
-      { key: "max_team_member", help: "WhatsApp integration status" },
-      { key: "max_team_members", help: "Facebook integration status" },
+      { key: "broadcast_enabled", help: "Ability to send mass messages to your contacts." },
+      { key: "api_access", help: "Access to developer APIs and webhooks for integration." },
+      { key: "priority_support", help: "Faster response times and dedicated support channel." },
+      { key: "markup_per_message", help: "Additional cost per message (INR)." },
     ],
   },
 ];
 
-interface APIFeature {
-  code: string;
-  label: string;
-  description: string | null;
-  value: any;
-  display_value: string;
-}
-
-interface APIPlan {
-  id: string;
-  name: string;
-  subtitle: string | null;
-  description: string;
-  amount: number;
-  currency: string;
-  billing_interval: number;
-  features: APIFeature[];
-  isYearly: boolean;
-  yearlyDiscount: number;
-  yearlyPrice: number;
-  featureMap?: Record<string, APIFeature>;
-}
-
-interface APIData {
-  plans: {
-    monthly: APIPlan[];
-    yearly: APIPlan[];
-  };
-  addons: any[];
-  meta: {
-    currency: string;
-    fetched_at: string;
-  };
-}
-
 const Pricing = () => {
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const navigate = useNavigate();
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
-    "yearly",
-  );
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [apiData, setApiData] = useState<APIData | null>(null);
-  const { initiatePurchase } = useRazorpay();
 
-  useEffect(() => {
-    fetch("https://instacal-api.doodlecaboodle.com/public/pricing")
-      .then((res) => res.json())
-      .then((data) => {
-        setApiData(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch pricing:", err);
-        setLoading(false);
-      });
-  }, []);
-
-  const toggleAddon = (id: string) => {
-    setSelectedAddons((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+  const handleGetStarted = (planId: string) => {
+    navigate(`/login?planId=${planId}&billingCycle=${billingCycle}`);
   };
 
-  const handleCreatePlan = (basePlan: any, totalAmount: number) => {
-    initiatePurchase({
-      ...basePlan,
-      amount: totalAmount * 100,
-    });
-  };
-
-  const plans = apiData
-    ? {
-        monthly: apiData.plans.monthly.map((plan) => ({
-          ...plan,
-          price: plan.amount,
-          highlight: plan.name === "New year plan" || plan.name === "Pro",
-          cta:
-            plan.amount === 0
-              ? "Get Started Free"
-              : plan.amount > 0
-                ? "Start Free Trial"
-                : "Contact Sales",
-          featureMap: plan.features.reduce(
-            (acc: Record<string, APIFeature>, f: APIFeature) => {
-              acc[f.code] = f;
-              return acc;
-            },
-            {},
-          ),
-        })),
-        yearly: apiData.plans.yearly.map((plan) => ({
-          ...plan,
-          price: plan.amount,
-          annual_price: plan.yearlyPrice,
-          highlight: plan.name === "Growth",
-          cta: ` Explore ${plan.name}`,
-          featureMap: plan.features.reduce(
-            (acc: Record<string, APIFeature>, f: APIFeature) => {
-              acc[f.code] = f;
-              return acc;
-            },
-            {},
-          ),
-        })),
-      }
-    : { monthly: [], yearly: [] };
-
-  const currentAddons =
-    apiData?.addons?.map((addon) => ({
-      ...addon,
-      price: addon.amount ?? addon.price ?? 0,
-      icon: addon.icon && ICON_MAP[addon.icon] ? addon.icon : "Sparkles",
-      period: addon.period ?? (addon.type === "recurring" ? "/mo" : "one-time"),
-    })) || [];
-
-  const currentPlanSet = plans[billingCycle];
-
-  const getCalculatedPrice = (basePrice: number | null) => {
-    if (basePrice === null) return null;
-    let total = basePrice;
-
-    // Add Recurring Addons
-    currentAddons.forEach((addon) => {
-      if (selectedAddons.includes(addon.id) && addon.type === "recurring") {
-        total += addon.price;
-      }
-    });
-    return total;
-  };
-
-  const getOneTimeFee = () => {
-    let total = 0;
-    currentAddons.forEach((addon) => {
-      if (selectedAddons.includes(addon.id) && addon.type === "onetime") {
-        total += addon.price;
-      }
-    });
-    return total;
-  };
-
-  const oneTimeFee = getOneTimeFee();
-
-  // Helper to handle purchase from sticky header
-  const handlePurchaseByIndex = (index: number) => {
-    const plan = currentPlanSet[index];
-    const price = getCalculatedPrice(plan.price) || 0;
-    handleCreatePlan(plan, price);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const currentPlans = PRICING_DATA[billingCycle].map((plan) => ({
+    ...plan,
+    highlight: plan.name === "Growth",
+    cta: "Get Started",
+    featureMap: plan.features.reduce((acc: any, f: any) => {
+      acc[f.code] = f;
+      return acc;
+    }, {}),
+  }));
 
   return (
     <div className="min-h-screen relative font-sans text-foreground">
@@ -268,25 +86,25 @@ const Pricing = () => {
       <Navigation />
       <FrostedBackground />
 
-      <main className="container mx-auto px-4 pt-32 pb-24 relative z-10 max-w-[1600px]">
+      <main className="container mx-auto px-4 pt-32 pb-24 relative z-10 max-w-[1200px]">
         {/* --- Header & Toggles --- */}
-        <div className="text-center max-w-4xl mx-auto mb-10">
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
-            Plans that scale with you
+        <div className="text-center max-w-4xl mx-auto mb-16">
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
+            Simple, Transparent Pricing
           </h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Simple pricing. No hidden fees. Cancel anytime.
+          <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+            Choose the perfect plan for your business. Whether you're just starting out or scaling fast, we've got you covered.
           </p>
 
           {/* Billing Cycle Toggle */}
-          <div className="inline-flex bg-secondary p-1 rounded-full border border-border mb-8">
+          <div className="inline-flex bg-secondary/50 backdrop-blur-sm p-1.5 rounded-2xl border border-border/50 mb-8 shadow-inner">
             <button
               onClick={() => setBillingCycle("monthly")}
               className={cn(
-                "px-6 py-2 rounded-full text-sm font-bold transition-all",
+                "px-8 py-2.5 rounded-xl text-sm font-bold transition-all duration-300",
                 billingCycle === "monthly"
-                  ? "bg-white text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? "bg-white text-foreground shadow-lg scale-105"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/30",
               )}
             >
               Monthly
@@ -294,237 +112,105 @@ const Pricing = () => {
             <button
               onClick={() => setBillingCycle("yearly")}
               className={cn(
-                "px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2",
+                "px-8 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2",
                 billingCycle === "yearly"
-                  ? "bg-white text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? "bg-white text-foreground shadow-lg scale-105"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/30",
               )}
             >
               Yearly{" "}
-              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase">
-                Save 20%
+              <span className="text-[10px] bg-primary text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
+                -20% Off
               </span>
             </button>
           </div>
         </div>
 
-        {/* --- ADD-ONS SELECTION (Top Placement) --- */}
-        <div className="max-w-5xl mx-auto mb-16">
-          <div className="bg-white/60 backdrop-blur-md border border-border/50 rounded-3xl p-1 overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-flow-col md:auto-cols-fr divide-y md:divide-y-0 md:divide-x divide-border/50">
-              {/* Platform Label (Visual Anchor) */}
-              <div className="p-6 flex flex-col justify-center items-start md:items-center bg-secondary/20 rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                  Core Platform
-                </span>
-                <h3 className="text-2xl font-bold flex items-center gap-2">
-                  VaakuOS
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Included in all plans
-                </p>
-              </div>
-
-              {/* Add-on 1 */}
-              {currentAddons.map((addon) => {
-                const isSelected = selectedAddons.includes(addon.id);
-                const Icon = ICON_MAP[addon.icon];
-                return (
-                  <div
-                    key={addon.id}
-                    onClick={() => toggleAddon(addon.id)}
-                    className={cn(
-                      "p-6 cursor-pointer transition-all relative group",
-                      isSelected ? "bg-primary/[0.03]" : "",
-                    )}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={cn(
-                            "p-2 rounded-lg transition-colors",
-                            isSelected
-                              ? "bg-primary text-white"
-                              : "bg-secondary text-muted-foreground",
-                          )}
-                        >
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <span className="font-bold block text-lg">
-                            {addon.name}
-                          </span>
-                          <span className="text-xs font-bold text-primary p-0.5 border border-primary/20 rounded bg-primary/5">
-                            +{addon.price.toLocaleString()} {addon.period}
-                          </span>
-                        </div>
-                      </div>
-                      <div
-                        className={cn(
-                          "h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all",
-                          isSelected
-                            ? "border-primary bg-primary text-white"
-                            : "border-border group-hover:border-primary/50",
-                        )}
-                      >
-                        {isSelected && <Check className="h-3 w-3" />}
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-snug pl-[52px]">
-                      {addon.description}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
         {/* --- Pricing Cards --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24 max-w-[1000px] mx-auto">
-          {currentPlanSet.map((plan, idx) => {
-            const calculatedPrice = getCalculatedPrice(plan.price);
-            const isEnterprise = plan.price === null;
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-32">
+          {currentPlans.map((plan, idx) => {
+            const displayPrice = billingCycle === "monthly" ? plan.amount : plan.discountedMonthlyPrice;
+            const isGrowth = plan.name === "Growth";
 
             return (
               <motion.div
                 key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1, duration: 0.4 }}
+                transition={{ delay: idx * 0.1, duration: 0.5 }}
                 className={cn(
-                  "relative flex flex-col p-6 border backdrop-blur-md transition-all duration-300 rounded-2xl h-full",
-                  plan.highlight
-                    ? "bg-primary/5 border-primary shadow-xl shadow-primary/5 scale-105 z-10"
-                    : "bg-white/60 border-border hover:border-primary/30  z-0",
+                  "relative flex flex-col p-8 border backdrop-blur-xl transition-all duration-500 rounded-[2.5rem] group",
+                  isGrowth
+                    ? "bg-primary/5 border-primary/50 shadow-2xl shadow-primary/10 ring-1 ring-primary/20"
+                    : "bg-white/40 border-border/50 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5",
                 )}
               >
-                {/* {plan.highlight && (
-                <div className="absolute top-0 left-0 w-full h-1 bg-primary rounded-t-2xl" />
-              )} */}
-                {plan.highlight && (
-                  <div className="absolute top-3 right-3 text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full uppercase tracking-wider">
-                    Recommended
+                {isGrowth && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[11px] font-bold text-white bg-primary px-4 py-1.5 rounded-full uppercase tracking-[0.1em] shadow-lg">
+                    Most Popular
                   </div>
                 )}
 
-                <div className="mb-2">
-                  <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground min-h-[40px] leading-relaxed">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">{plan.name}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {plan.subtitle}
                   </p>
                 </div>
 
-                <div className="mb-8">
-                  <div className="flex items-end gap-1 mb-2">
-                    {!isEnterprise ? (
-                      <>
-                        <span className="text-2xl font-extrabold tracking-tight leading-none">
-                          ₹{calculatedPrice?.toLocaleString()}
-                        </span>
-                        <span className="text-muted-foreground font-medium text-sm mb-1">
-                          /mo
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-3xl font-extrabold tracking-tight leading-none">
-                        Custom
-                      </span>
-                    )}
+                <div className="mb-10">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-black tracking-tighter">
+                      ₹{displayPrice.toLocaleString()}
+                    </span>
+                    <span className="text-muted-foreground font-semibold text-base">
+                      /mo
+                    </span>
                   </div>
-
-                  {/* One Time Fee Notice */}
-                  {!isEnterprise && oneTimeFee > 0 && (
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Plus className="h-3 w-3" />₹{oneTimeFee.toLocaleString()}{" "}
-                      one-time setup
-                    </div>
+                  {billingCycle === "yearly" && (
+                    <p className="text-sm text-primary font-bold mt-2 animate-pulse">
+                      Billed annually (₹{plan.yearlyPrice.toLocaleString()}/yr)
+                    </p>
                   )}
-
-                  {/* Billing Cycle Notice */}
-                  {billingCycle === "yearly" &&
-                    !isEnterprise &&
-                    calculatedPrice! > 0 && (
-                      <p className="text-xs text-primary font-medium mt-2">
-                        Billed annually (₹
-                        {(calculatedPrice! * 12).toLocaleString()}/yr)
-                      </p>
-                    )}
+                  {billingCycle === "monthly" && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                       ₹{plan.yearlyPrice.toLocaleString()}/yr if billed yearly
+                    </p>
+                  )}
                 </div>
 
-                <div className="space-y-4 flex-grow border-t border-border/50 pt-6">
-                  {/* Add-on Features Highlight */}
-                  <AnimatePresence>
-                    {selectedAddons.length > 0 && !isEnterprise && (
-                      <div className="space-y-3 mb-4 pb-4 border-b border-border/40 border-dashed">
-                        {currentAddons.map((addon) => {
-                          const isIncluded = selectedAddons.includes(addon.id);
-                          if (!isIncluded) return null;
-
-                          // Find the first feature key that is true to display text
-                          const featureKey = Object.keys(addon.features)[0];
-                          const featureText =
-                            FEATURE_METADATA[featureKey]?.label ||
-                            (addon as any).name;
-
-                          return (
-                            <motion.div
-                              key={addon.id}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: -10 }}
-                              className="flex gap-3 text-sm font-semibold text-primary"
-                            >
-                              <div className="mt-0.5 p-0.5 bg-primary/10 rounded-full">
-                                <Plus className="h-3 w-3" />
-                              </div>
-                              {featureText}
-                            </motion.div>
-                          );
-                        })}
+                <div className="space-y-4 flex-grow border-t border-border/40 pt-8">
+                  {plan.features.slice(1, 7).map((feature: any, i: number) => (
+                    <div key={i} className="flex gap-4 text-sm items-center">
+                      <div className={cn(
+                        "flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center",
+                        feature.value === false ? "bg-muted text-muted-foreground/30" : "bg-primary/10 text-primary"
+                      )}>
+                        <Check className="h-3 w-3" strokeWidth={3} />
                       </div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Base Features */}
-                  {plan.features?.map((feature: APIFeature, i: number) => {
-                    if (!feature) return null;
-
-                    // For booleans, only show when true to keep the list concise
-                    if (typeof feature.value === "boolean" && !feature.value)
-                      return null;
-
-                    const displayText =
-                      typeof feature.value === "boolean"
-                        ? feature.label
-                        : `${feature.display_value ?? feature.value} ${feature.label}`;
-
-                    return (
-                      <div key={i} className="flex gap-3 text-sm items-start">
-                        <div className="mt-0.5 flex-shrink-0 text-primary/60">
-                          <Check className="h-4 w-4" />
-                        </div>
-                        <span className="text-foreground/80 leading-tight">
-                          {displayText}
-                        </span>
-                      </div>
-                    );
-                  })}
+                      <span className={cn(
+                        "font-medium leading-none",
+                        feature.value === false ? "text-muted-foreground/50" : "text-foreground/80"
+                      )}>
+                        {feature.display_value} {feature.label}
+                      </span>
+                    </div>
+                  ))}
                 </div>
 
                 <Button
                   size="lg"
                   className={cn(
-                    "w-full font-semibold h-11 rounded-lg mt-8",
-                    plan.highlight
-                      ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
-                      : "bg-primary border-2 border-primary/10 text-white ",
+                    "w-full font-bold h-14 rounded-2xl mt-10 transition-all duration-300",
+                    isGrowth
+                      ? "bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(var(--primary),0.5)] hover:-translate-y-1"
+                      : "bg-secondary hover:bg-secondary/80 text-foreground hover:-translate-y-1",
                   )}
-                  onClick={() => handleCreatePlan(plan, calculatedPrice || 0)}
+                  onClick={() => handleGetStarted(plan.id)}
                 >
                   <span className="flex items-center justify-center gap-2">
                     {plan.cta}
-                    <ArrowUpRight />
+                    <ArrowUpRight className="h-5 w-5" />
                   </span>
                 </Button>
               </motion.div>
@@ -533,112 +219,90 @@ const Pricing = () => {
         </div>
 
         {/* --- Comparison Table --- */}
-        <div className="max-w-[1400px] mx-auto mb-20">
-          <h2 className="text-3xl font-bold my-10 text-center">
-            Compare all features
-          </h2>
+        <div className="max-w-[1000px] mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">Compare Features</h2>
+            <p className="text-muted-foreground">Find the detailed breakdown of what's included in each plan.</p>
+          </div>
 
-          <div className="bg-white/60 backdrop-blur-md rounded-3xl border border-border/50 shadow-sm relative">
+          <div className="bg-white/40 backdrop-blur-2xl rounded-[3rem] border border-border/50 shadow-2xl overflow-hidden">
             <TooltipProvider>
               {/* Desktop Sticky Header */}
-              <div className="hidden md:grid grid-cols-5 gap-4 sticky top-16 z-40 bg-[#FDFBF9] shadow-md border-b border-border/10 py-4 px-2 rounded-t-3xl">
-                <div className="col-span-1 p-2 text-sm font-bold text-muted-foreground uppercase tracking-widest self-end">
-                  Features
+              <div className="hidden md:grid grid-cols-4 gap-4 sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-border/50 py-8 px-8">
+                <div className="col-span-1 text-sm font-black text-muted-foreground uppercase tracking-[0.2em] self-center">
+                  Core Features
                 </div>
 
-                {/* Plan Columns with Buttons */}
-                {currentPlanSet.map((plan, idx) => (
+                {currentPlans.map((plan, idx) => (
                   <div
                     key={plan.id}
-                    className="col-span-1 p-2 text-center flex flex-col items-center justify-end h-full"
+                    className="col-span-1 text-center flex flex-col items-center justify-center"
                   >
-                    <span
-                      className={cn(
-                        "font-bold text-xl mb-2",
-                        plan.highlight ? "text-primary" : "text-foreground",
-                      )}
-                    >
+                    <span className={cn(
+                      "font-black text-xl mb-4",
+                      plan.name === "Growth" ? "text-primary" : "text-foreground"
+                    )}>
                       {plan.name}
                     </span>
-                    {plan.highlight && (
-                      <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase mb-2">
-                        Popular
-                      </span>
-                    )}
                     <Button
                       size="sm"
-                      onClick={() => handlePurchaseByIndex(idx)}
-                      className={cn(
-                        "w-full max-w-[140px] rounded-lg h-9 font-semibold",
-                        plan.highlight
-                          ? "bg-primary text-white"
-                          : "bg-white border border-primary/20 text-primary hover:bg-primary/5",
-                      )}
+                      variant={plan.name === "Growth" ? "default" : "outline"}
+                      onClick={() => handleGetStarted(plan.id)}
+                      className="w-full max-w-[120px] rounded-xl h-10 font-bold"
                     >
-                      {plan.price === null ? "Contact" : "Choose"}
+                      Choose
                     </Button>
                   </div>
                 ))}
               </div>
 
-              <div className="divide-y divide-border/50">
+              <div className="divide-y divide-border/30">
                 {COMPARISON_CONFIG.map((category, idx) => (
                   <div key={idx}>
                     {/* Category Header */}
-                    <div className="bg-secondary/20 p-4 border-y border-border/20 sticky top-[164px] z-30 backdrop-blur-sm">
-                      <h3 className="text-lg font-bold text-foreground">
+                    <div className="bg-secondary/30 px-8 py-4 backdrop-blur-sm">
+                      <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">
                         {category.title}
                       </h3>
                     </div>
 
                     {/* Rows */}
-                    <div className="divide-y divide-border/10 bg-white/40">
+                    <div className="divide-y divide-border/10">
                       {category.rows.map((row, rIdx) => {
                         const metadata = FEATURE_METADATA[row.key];
                         return (
                           <div
                             key={rIdx}
-                            className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center p-4 hover:bg-secondary/10 transition-colors group"
+                            className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center px-8 py-6 hover:bg-primary/[0.02] transition-colors group"
                           >
                             {/* Feature Name */}
-                            <div className="col-span-1 font-medium text-foreground text-sm flex items-center gap-2">
+                            <div className="col-span-1 font-bold text-foreground/80 text-sm flex items-center gap-2">
                               {metadata?.label || row.key}
                               {row.help && (
                                 <Tooltip>
                                   <TooltipTrigger>
-                                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer" />
+                                    <Info className="h-4 w-4 text-muted-foreground/30 hover:text-primary transition-colors cursor-pointer" />
                                   </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="w-48 text-xs">{row.help}</p>
+                                  <TooltipContent className="bg-foreground text-background border-none p-3 rounded-xl shadow-2xl">
+                                    <p className="max-w-[200px] text-xs leading-relaxed font-medium">{row.help}</p>
                                   </TooltipContent>
                                 </Tooltip>
                               )}
                             </div>
 
                             {/* Values */}
-                            {currentPlanSet.map((plan, pIdx) => (
+                            {currentPlans.map((plan) => (
                               <div
                                 key={plan.id}
-                                className={cn(
-                                  "col-span-1 text-center text-sm",
-                                  pIdx === 2 ? "font-semibold relative" : "", // Team plan index assumption or logic
-                                )}
+                                className="col-span-1 text-center text-sm"
                               >
-                                <span className="md:hidden text-muted-foreground text-xs mr-2 font-bold uppercase">
-                                  {plan.name}:
+                                <span className="md:hidden text-muted-foreground/50 text-[10px] block font-black uppercase mb-1">
+                                  {plan.name}
                                 </span>
-                                {/* Desktop Highlight Column Background for Team (index 2) */}
-                                {pIdx === 2 && (
-                                  <div className="absolute inset-y-0 -left-2 -right-2 bg-primary/5 hidden md:block -z-10 group-hover:bg-primary/10 transition-colors pointer-events-none" />
-                                )}
                                 {renderCell(
-                                  typeof plan.featureMap?.[row.key]?.value ===
-                                    "boolean"
-                                    ? plan.featureMap?.[row.key]?.value
-                                    : (plan.featureMap?.[row.key]
-                                        ?.display_value ??
-                                        plan.featureMap?.[row.key]?.value ??
-                                        false),
+                                  plan.featureMap?.[row.key]?.display_value ??
+                                  plan.featureMap?.[row.key]?.value ??
+                                  false
                                 )}
                               </div>
                             ))}
@@ -659,14 +323,17 @@ const Pricing = () => {
   );
 };
 
-const renderCell = (value: string | boolean) => {
-  if (value === true)
-    return <CheckCircle2 className="h-5 w-5 text-primary mx-auto" />;
-  if (value === false)
+const renderCell = (value: any) => {
+  if (value === true || value === "Included")
+    return <CheckCircle2 className="h-6 w-6 text-primary mx-auto" strokeWidth={2.5} />;
+  if (value === false || value === "Not Included")
     return (
-      <span className="text-muted-foreground/20 text-xl font-light">—</span>
+      <span className="text-muted-foreground/20 text-2xl font-light">—</span>
     );
-  return <span className="text-foreground/90 font-medium">{value}</span>;
+  if (value === -1 || value === "Unlimited") {
+    return <span className="text-primary font-black tracking-tighter text-lg">∞</span>;
+  }
+  return <span className="text-foreground/90 font-bold">{value}</span>;
 };
 
 export default Pricing;
