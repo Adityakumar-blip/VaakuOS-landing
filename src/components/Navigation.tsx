@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Menu, X, ArrowRight } from "lucide-react";
-import whiteFull from "@/assets/white_full.png";
+import { Menu, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useBookDemo } from "@/contexts/BookDemoContext";
+import { BrandMark } from "@/components/BrandMark";
 import {
   Sheet,
   SheetContent,
@@ -19,32 +18,10 @@ export const Navigation = () => {
   const { openBookDemo } = useBookDemo();
 
   const navItems = [
-    // { label: "Features", path: "/features" },
     { label: "Integrations", path: "/integrations" },
     { label: "Pricing", path: "/pricing" },
     { label: "Calculator", path: "/calculator" },
-    // { label: "Journal", path: "/blog" },
   ];
-
-  const menuVariants = {
-    closed: {
-      opacity: 0,
-      x: "100%",
-    },
-    open: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    closed: { opacity: 0, x: 20 },
-    open: { opacity: 1, x: 0 },
-  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -54,22 +31,12 @@ export const Navigation = () => {
             className="flex items-center gap-2 cursor-pointer group"
             onClick={() => navigate("/")}
           >
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110">
-              <img
-                src={whiteFull}
-                alt="VaakuOS logo"
-                className="h-full w-full object-contain"
-                width={120}
-                height={120}
-                loading="eager"
-              />
-            </div>
+            <BrandMark className="transition-transform group-hover:scale-110" />
             <span className="text-xl font-bold text-foreground tracking-tight">
               VaakuOS
             </span>
           </div>
 
-          {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
               <div
@@ -85,23 +52,14 @@ export const Navigation = () => {
 
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/login")}
-              >
+              <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>
                 Sign In
               </Button>
-              <Button
-                variant="hero"
-                size="sm"
-                onClick={openBookDemo}
-              >
+              <Button variant="hero" size="sm" onClick={openBookDemo}>
                 Book Live Demo
               </Button>
             </div>
 
-            {/* Mobile Menu Trigger */}
             <div className="md:hidden">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
@@ -109,6 +67,9 @@ export const Navigation = () => {
                     variant="ghost"
                     size="icon"
                     className="rounded-full hover:bg-mutedTransition active:scale-95 transition-all"
+                    aria-label={
+                      isOpen ? "Close navigation menu" : "Open navigation menu"
+                    }
                   >
                     <Menu className="h-6 w-6" />
                   </Button>
@@ -120,16 +81,7 @@ export const Navigation = () => {
                   <div className="flex flex-col h-full">
                     <SheetHeader className="p-6 border-b border-border">
                       <SheetTitle className="text-left flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center overflow-hidden">
-                          <img
-                            src={whiteFull}
-                            alt="VaakuOS logo"
-                            className="h-full w-full object-contain"
-                            width={120}
-                            height={120}
-                            loading="eager"
-                          />
-                        </div>
+                        <BrandMark />
                         <span className="font-bold text-xl tracking-tight">
                           VaakuOS
                         </span>
@@ -137,16 +89,10 @@ export const Navigation = () => {
                     </SheetHeader>
 
                     <div className="flex-1 px-6 py-10 overflow-y-auto">
-                      <motion.div
-                        initial="closed"
-                        animate={isOpen ? "open" : "closed"}
-                        variants={menuVariants}
-                        className="flex flex-col gap-2"
-                      >
+                      <div className="flex flex-col gap-2">
                         {navItems.map((item) => (
-                          <motion.div
+                          <div
                             key={item.path}
-                            variants={itemVariants}
                             onClick={() => {
                               navigate(item.path);
                               setIsOpen(false);
@@ -155,9 +101,9 @@ export const Navigation = () => {
                           >
                             {item.label}
                             <ArrowRight className="h-5 w-5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-primary" />
-                          </motion.div>
+                          </div>
                         ))}
-                      </motion.div>
+                      </div>
                     </div>
 
                     <div className="p-6 border-t border-border bg-muted/30">

@@ -4,8 +4,9 @@ export const SmoothScroll = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+    const isNarrowViewport = window.innerWidth < 1024;
 
-    if (prefersReducedMotion || isTouchDevice) {
+    if (prefersReducedMotion || isTouchDevice || isNarrowViewport) {
       return;
     }
 
