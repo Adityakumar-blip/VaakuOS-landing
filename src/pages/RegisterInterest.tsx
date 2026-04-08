@@ -10,6 +10,10 @@ import { FrostedBackground } from "@/components/FrostedBackground";
 import { supabase } from "@/lib/supabase";
 import { trackFormStart, trackFormSubmit, trackEvent } from "@/lib/analytics";
 
+const isLocalPreview = () =>
+  typeof window !== "undefined" &&
+  ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
 const RegisterInterest = () => {
   const navigate = useNavigate();
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -44,19 +48,18 @@ const RegisterInterest = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('interests')
-        .insert([
+      if (!isLocalPreview()) {
+        const { error } = await supabase.from("interests").insert([
           {
             name: formData.name,
             email: formData.email,
             companyName: formData.companyName,
-          }
+          },
         ]);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
-      console.log("Interest registered:", formData);
       toast.success("Interest registered successfully!");
       setIsSuccess(true);
 
@@ -72,8 +75,11 @@ const RegisterInterest = () => {
         navigate("/");
       }, 3000);
     } catch (error: unknown) {
-      console.error("Supabase error:", error);
-      toast.error(error instanceof Error ? error.message : "Something went wrong. Please try again.");
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

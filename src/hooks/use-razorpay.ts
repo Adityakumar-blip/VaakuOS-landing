@@ -10,6 +10,31 @@ interface Plan {
     billing_cycle: string;
 }
 
+let razorpayScriptPromise: Promise<void> | null = null;
+
+const loadRazorpayScript = () => {
+    if (typeof window === "undefined") {
+        return Promise.reject(new Error("Razorpay is only available in the browser"));
+    }
+
+    if ((window as any).Razorpay) {
+        return Promise.resolve();
+    }
+
+    if (!razorpayScriptPromise) {
+        razorpayScriptPromise = new Promise<void>((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load Razorpay checkout"));
+            document.head.appendChild(script);
+        });
+    }
+
+    return razorpayScriptPromise;
+};
+
 export const useRazorpay = () => {
     const navigate = useNavigate();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -51,6 +76,8 @@ export const useRazorpay = () => {
             }
 
             const subscription = await response.json();
+
+            await loadRazorpayScript();
 
             const options = {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID,

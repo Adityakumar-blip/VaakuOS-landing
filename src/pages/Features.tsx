@@ -1,11 +1,14 @@
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { FeaturesSection } from "@/components/FeaturesSection";
-import { Card } from "@/components/ui/card";
 import { CheckCircle2, Zap, Shield, MousePointer2, Gauge, Globe } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { useBookDemo } from "@/contexts/BookDemoContext";
+import { useNavigate } from "react-router-dom";
 
 const Features = () => {
+  const { openBookDemo } = useBookDemo();
+  const navigate = useNavigate();
   const deepDiveFeatures = [
     {
       title: "Real-time Intent Tracking",
@@ -81,11 +84,19 @@ const Features = () => {
               Join 500+ brands using VaakuOS to recover millions in lost revenue every month.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-full font-bold transition-all transform hover:scale-105">
+              <button
+                type="button"
+                onClick={openBookDemo}
+                className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-full font-bold transition-all transform hover:scale-105"
+              >
                 Book a Live Demo
               </button>
-              <button className="bg-transparent border border-border hover:bg-white/5 px-8 py-4 rounded-full font-bold transition-all">
-                Read Documentation
+              <button
+                type="button"
+                onClick={() => navigate("/calculator")}
+                className="bg-transparent border border-border hover:bg-white/5 px-8 py-4 rounded-full font-bold transition-all"
+              >
+                Calculate ROI
               </button>
             </div>
           </div>
