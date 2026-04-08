@@ -59,7 +59,7 @@ const Signup = () => {
           try {
             setIsLoading(true);
             setLoadingStep("auth");
-            await authService.googleLogin(response.credential);
+            const user = await authService.googleLogin(response.credential);
             toast({
               title: "Welcome!",
               description: "You have successfully signed up with Google.",
@@ -81,7 +81,9 @@ const Signup = () => {
               }
             }
             
-            window.location.href = "https://app.vaakuos.com"; // Redirect to app
+            const tokenParam = user.exchange_token || user.access_token;
+            const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8081' : 'https://app.vaakuos.com';
+            window.location.href = `${appUrl}?token=${tokenParam}`; // Redirect to app
           } catch (error: any) {
             toast({
               title: "Google Signup failed",
@@ -108,7 +110,7 @@ const Signup = () => {
     setLoadingStep("auth");
 
     try {
-      await authService.register(formData);
+      const result = await authService.register(formData);
       toast({
         title: "Account created!",
         description: "Welcome to VaakuOS. Let's set up your account.",
@@ -130,7 +132,9 @@ const Signup = () => {
         }
       }
       
-      window.location.href = "https://app.vaakuos.com";
+      const tokenParam = result.exchange_token || result.access_token;
+      const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8081' : 'https://app.vaakuos.com';
+      window.location.href = `${appUrl}?token=${tokenParam}`;
     } catch (error: any) {
       toast({
         title: "Signup failed",

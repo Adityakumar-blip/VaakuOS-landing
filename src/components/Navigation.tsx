@@ -21,9 +21,9 @@ export const Navigation = () => {
   const navItems = [
     // { label: "Features", path: "/features" },
     { label: "Integrations", path: "/integrations" },
-    { label: "Pricing", path: "/pricing" },
+    // { label: "Pricing", path: "/pricing" },
     { label: "Calculator", path: "/calculator" },
-    // { label: "Journal", path: "/blog" },
+    { label: "Blogs", path: "/blog" },
   ];
 
   const menuVariants = {
@@ -92,11 +92,7 @@ export const Navigation = () => {
               >
                 Sign In
               </Button>
-              <Button
-                variant="hero"
-                size="sm"
-                onClick={openBookDemo}
-              >
+              <Button variant="hero" size="sm" onClick={openBookDemo}>
                 Book Live Demo
               </Button>
             </div>

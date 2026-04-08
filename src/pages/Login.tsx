@@ -72,7 +72,9 @@ const Login = () => {
               }
             }
             
-            window.location.href = planId ? "https://app.vaakuos.com/dashboard" : "https://app.vaakuos.com";
+            const tokenParam = user.exchange_token || user.access_token;
+            const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8081' : 'https://app.vaakuos.com';
+            window.location.href = planId ? `${appUrl}/dashboard?token=${tokenParam}` : `${appUrl}?token=${tokenParam}`;
           } catch (error: any) {
             toast({
               title: "Google Login failed",
@@ -99,7 +101,7 @@ const Login = () => {
     setLoadingStep("auth");
 
     try {
-      await authService.login({ email, password, rememberMe });
+      const result = await authService.login({ email, password, rememberMe });
       
       toast({
         title: "Welcome back!",
@@ -123,7 +125,9 @@ const Login = () => {
       }
       
       // If plan selection from pricing page, go to dashboard, else main site
-      window.location.href = planId ? "https://app.vaakuos.com/dashboard" : "https://app.vaakuos.com";
+      const tokenParam = result.exchange_token || result.access_token;
+      const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8081' : 'https://app.vaakuos.com';
+      window.location.href = planId ? `${appUrl}/dashboard?token=${tokenParam}` : `${appUrl}?token=${tokenParam}`;
     } catch (error: any) {
       toast({
         title: "Login failed",

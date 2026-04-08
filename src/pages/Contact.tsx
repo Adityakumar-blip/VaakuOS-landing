@@ -29,6 +29,7 @@ const Contact = () => {
               <div className="space-y-8">
                 <div className="flex gap-6">
                   <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+      
                     <Mail className="h-6 w-6 text-primary" />
                   </div>
                   <div>
@@ -36,7 +37,6 @@ const Contact = () => {
                     <p className="text-muted-foreground">For general inquiries: hello@vaakuos.com</p>
                   </div>
                 </div>
-
                 <div className="flex gap-6">
                   <div className="h-12 w-12 rounded-2xl bg-secondary/10 flex items-center justify-center shrink-0">
                     <MessageCircle className="h-6 w-6 text-secondary" />
@@ -56,8 +56,12 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold mb-1">Our Offices</h3>
-                    <p className="text-muted-foreground">Delhi. India</p>
-                    <p className="text-muted-foreground">Remote-First Team</p>
+                    <p className="text-muted-foreground font-semibold">UNSOLVED TECHNOLOGIES LLP</p>
+                    <p className="text-muted-foreground">B-93(A-4-B-new), F-1 Shiv Mandir Vali Gali,</p>
+                    <p className="text-muted-foreground">Janakpuri, SBD, Ghaziabad, Uttar Pradesh - 201001</p>
+                    <p className="text-muted-foreground mt-2">
+                       <span className="font-semibold text-foreground">Mobile:</span> +91 8447576338
+                    </p>
                   </div>
                 </div>
               </div>

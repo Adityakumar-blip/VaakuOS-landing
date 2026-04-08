@@ -13,7 +13,7 @@ const PrivacyPolicy = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-foreground">1. Introduction</h2>
             <p className="text-muted-foreground mb-4">
-              Welcome to VaakuOS. We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about our policy, or our practices with regards to your personal information, please contact us.
+              Welcome to VaakuOS, operated by UNSOLVED TECHNOLOGIES LLP. We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about our policy, or our practices with regards to your personal information, please contact us.
             </p>
           </section>
 
