@@ -105,7 +105,7 @@ const App = () => (
       />
       <meta
         property="og:description"
-        content="Recover lost revenue with VaakuOSâ€”an intelligent engine that rescues abandoned carts and conversations."
+        content="Recover lost revenue with VaakuOS—an intelligent engine that rescues abandoned carts and conversations."
       />
       <meta property="og:type" content="website" />
       <meta property="og:url" content={siteUrl} />
@@ -117,7 +117,7 @@ const App = () => (
       />
       <meta
         name="twitter:description"
-        content="Recover lost revenue with VaakuOSâ€”an intelligent engine that rescues abandoned carts and conversations."
+        content="Recover lost revenue with VaakuOS—an intelligent engine that rescues abandoned carts and conversations."
       />
       <meta name="twitter:image" content={defaultOgImage} />
     </Helmet>

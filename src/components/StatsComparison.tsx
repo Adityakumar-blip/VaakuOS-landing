@@ -4,26 +4,26 @@ import { TrendingUp, Zap, Target, Sparkles, Layers, Inbox } from "lucide-react";
 const stats = [
   {
     strategy: "Omnichannel Strategy",
-    captured: "15% â€“ 25%",
-    completion: "18% â€“ 35%",
-    growth: "10% â€“ 15%",
+    captured: "15% - 25%",
+    completion: "18% - 35%",
+    growth: "10% - 15%",
     icon: Sparkles,
     highlight: true,
     note: "Unified customer intelligence with cross-channel communication for maximum recovery.",
   },
   {
     strategy: "Multi-Channel Strategy",
-    captured: "5% â€“ 10%",
-    completion: "8% â€“ 15%",
-    growth: "3% â€“ 5%",
+    captured: "5% - 10%",
+    completion: "8% - 15%",
+    growth: "3% - 5%",
     icon: Layers,
     note: "Disconnected flows across multiple apps without shared customer context.",
   },
   {
     strategy: "Single-Channel Strategy",
-    captured: "1% â€“ 3%",
-    completion: "2% â€“ 5%",
-    growth: "0.5% â€“ 1%",
+    captured: "1% - 3%",
+    completion: "2% - 5%",
+    growth: "0.5% - 1%",
     icon: Inbox,
     note: "Isolated communication with no visibility into customer behavior across touchpoints.",
   },
@@ -76,7 +76,7 @@ export const StatsComparison = () => {
                   label="Revenue Captured"
                   value={stat.captured}
                   icon={<Target className="h-4 w-4" />}
-                  percentage={stat.captured.split("â€“")[1].trim().replace("%", "")}
+                  percentage={stat.captured.split("-")[1].trim().replace("%", "")}
                   highlight={stat.highlight}
                 />
 
@@ -84,7 +84,7 @@ export const StatsComparison = () => {
                   label="Checkout Completion"
                   value={stat.completion}
                   icon={<Zap className="h-4 w-4" />}
-                  percentage={parseInt(stat.completion.split("â€“")[1])}
+                  percentage={parseInt(stat.completion.split("-")[1])}
                   highlight={stat.highlight}
                 />
 

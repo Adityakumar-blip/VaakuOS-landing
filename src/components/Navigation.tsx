@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useBookDemo } from "@/contexts/BookDemoContext";
 import { BrandMark } from "@/components/BrandMark";
+import WhiteLogo from '@/assets/white_full.png'
 import {
   Sheet,
   SheetContent,
@@ -52,7 +53,9 @@ export const Navigation = () => {
             className="flex items-center gap-2 cursor-pointer group"
             onClick={() => navigate("/")}
           >
-            <BrandMark className="transition-transform group-hover:scale-110" />
+            <div className="bg-primary p-[3px] rounded-lg">
+            <img src={WhiteLogo} className="h-10 w-10" />
+            </div>
             <span className="text-xl font-bold text-foreground tracking-tight">
               VaakuOS
             </span>

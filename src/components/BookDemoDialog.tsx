@@ -339,7 +339,7 @@ const BookDemoDialog = ({ open, onOpenChange }: BookDemoDialogProps) => {
 
             <div className="p-4 bg-muted/30 border-t border-border mt-auto">
               <p className="text-center text-[10px] text-muted-foreground uppercase tracking-widest font-black">
-                Step {step} of 2 â€¢ Secure your VIP walkthrough
+                Step {step} of 2 • Secure your VIP walkthrough
               </p>
             </div>
           </form>
