@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BrandMark } from "@/components/BrandMark";
+import WhiteLogo from '@/assets/white_full.png';
 
 const footerLinks = {
   Product: ["Features", "Integrations", "Changelog"],
@@ -14,7 +14,9 @@ export const Footer = () => {
         <div className="grid md:grid-cols-5 gap-8 mb-8">
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <BrandMark className="rounded-lg" />
+              <div className="bg-primary p-[3px] rounded-lg">
+                <img src={WhiteLogo} className="h-10 w-10" alt="VaakuOS Logo" />
+              </div>
               <span className="text-xl font-bold text-foreground">VaakuOS</span>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -72,7 +74,7 @@ export const Footer = () => {
 
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            Â© 2026 VaakuOS. An Unsolved Technologies LLP company. All rights reserved.
+            © 2026 VaakuOS. An Unsolved Technologies LLP company. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <a

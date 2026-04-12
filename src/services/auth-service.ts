@@ -37,7 +37,7 @@ export const authService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
     const { data } = await apiClient.post<AuthResponse>('/auth/login', credentials);
     if (data.access_token) {
-      localStorage.setItem('auth_token', data.access_token);
+      localStorage.setItem('is_authenticated', 'true');
     }
     return data;
   },
@@ -45,7 +45,7 @@ export const authService = {
   register: async (userData: RegisterRequest): Promise<AuthResponse> => {
     const { data } = await apiClient.post<AuthResponse>('/auth/register', userData);
     if (data.access_token) {
-      localStorage.setItem('auth_token', data.access_token);
+      localStorage.setItem('is_authenticated', 'true');
     }
     return data;
   },
@@ -53,7 +53,7 @@ export const authService = {
   googleLogin: async (token: string): Promise<AuthResponse> => {
     const { data } = await apiClient.post<AuthResponse>('/auth/google', { token });
     if (data.access_token) {
-      localStorage.setItem('auth_token', data.access_token);
+      localStorage.setItem('is_authenticated', 'true');
     }
     return data;
   },
@@ -62,7 +62,8 @@ export const authService = {
     try {
       await apiClient.post('/auth/logout');
     } finally {
-      localStorage.removeItem('auth_token');
+      localStorage.removeItem('is_authenticated');
+      localStorage.removeItem('auth_token'); // Clean up old tokens
     }
   },
 
@@ -79,5 +80,18 @@ export const authService = {
   resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
     const { data } = await apiClient.post<{ message: string }>('/auth/reset-password', { token, newPassword });
     return data;
+  },
+  checkSession: async (): Promise<boolean> => {
+    try {
+      await apiClient.get('/auth/me');
+      localStorage.setItem('is_authenticated', 'true');
+      return true;
+    } catch (error: any) {
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        localStorage.removeItem('is_authenticated');
+        localStorage.removeItem('auth_token');
+      }
+      return false;
+    }
   }
 };

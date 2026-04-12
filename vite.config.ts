@@ -5,6 +5,7 @@ import path from "path";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
+    allowedHosts: ['vaakuos.local', 'vaakuos.com'],
     host: "::",
     port: 8080,
     proxy: {

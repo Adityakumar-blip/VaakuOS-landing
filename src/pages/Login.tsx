@@ -29,13 +29,20 @@ const Login = () => {
   const { toast } = useToast();
   const { initiatePurchase } = useRazorpay();
 
-  const isAuthenticated = !!localStorage.getItem("auth_token");
+  const isAuthenticated = localStorage.getItem("is_authenticated") === "true" || !!localStorage.getItem("auth_token");
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate(from);
-    }
-  }, [isAuthenticated, navigate, from]);
+    const checkAndRedirect = async () => {
+      if (isAuthenticated) {
+        const isValid = await authService.checkSession();
+        if (isValid) {
+          const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'vaakuos.local' ? 'http://vaakuos.local:8081' : 'https://app.vaakuos.com';
+          window.location.href = planId ? `${appUrl}/dashboard` : `${appUrl}`;
+        }
+      }
+    };
+    checkAndRedirect();
+  }, [isAuthenticated, planId]);
 
   useEffect(() => {
     const initGoogle = async () => {
@@ -72,9 +79,8 @@ const Login = () => {
               }
             }
             
-            const tokenParam = user.exchange_token || user.access_token;
-            const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8081' : 'https://app.vaakuos.com';
-            window.location.href = planId ? `${appUrl}/dashboard?token=${tokenParam}` : `${appUrl}?token=${tokenParam}`;
+            const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'vaakuos.local' ? 'http://vaakuos.local:8081' : 'https://app.vaakuos.com';
+            window.location.href = planId ? `${appUrl}/dashboard` : `${appUrl}`;
           } catch (error: any) {
             toast({
               title: "Google Login failed",
@@ -125,9 +131,8 @@ const Login = () => {
       }
       
       // If plan selection from pricing page, go to dashboard, else main site
-      const tokenParam = result.exchange_token || result.access_token;
-      const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8081' : 'https://app.vaakuos.com';
-      window.location.href = planId ? `${appUrl}/dashboard?token=${tokenParam}` : `${appUrl}?token=${tokenParam}`;
+      const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'vaakuos.local' ? 'http://vaakuos.local:8081' : 'https://app.vaakuos.com';
+      window.location.href = planId ? `${appUrl}/dashboard` : `${appUrl}`;
     } catch (error: any) {
       toast({
         title: "Login failed",
