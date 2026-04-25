@@ -1,7 +1,7 @@
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Clock, Calendar } from "lucide-react";
+import { Loader2, ArrowLeft, Calendar } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { blogService } from "@/services/blog-service";
 import { useParams, Link } from "react-router-dom";
@@ -30,10 +30,10 @@ const BlogDetails = () => {
         <div className="container mx-auto max-w-4xl px-4">
           <Link
             to="/blog"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors text-sm md:text-base font-medium"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Journal
+            Back to Blog
           </Link>
 
           {isLoading ? (
@@ -76,42 +76,29 @@ const BlogDetails = () => {
                 }}
               />
               <article>
-              <header className="mb-12">
+              <header className="mb-10 md:mb-12">
                 <div className="flex items-center gap-4 mb-6">
-                  <Badge className="bg-primary/10 text-primary border-none text-sm font-bold px-4 py-1">
+                  <Badge className="bg-primary/10 text-primary border-none text-xs md:text-sm font-bold px-3 md:px-4 py-1">
                     {post.category?.name || "Growth"}
                   </Badge>
-                  {/* <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    {Math.ceil(post.content.length / 500)} min read
-                  </div> */}
                 </div>
 
-                <h1 className="text-4xl md:text-6xl font-bold mb-8 leading-tight">
+                <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 md:mb-8 leading-tight tracking-tight text-foreground">
                   {post.title}
                 </h1>
 
-                <div className="flex items-center justify-between py-6 border-y border-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between py-6 border-y border-border gap-4">
                   <div className="flex items-center gap-3">
-                    {/* <div className="h-12 w-12 rounded-full bg-muted overflow-hidden">
-                      {post.author?.avatar && (
-                        <img
-                          src={post.author.avatar}
-                          alt={post.author.name}
-                          className="h-full w-full object-cover"
-                        />
-                      )}
-                    </div> */}
                     <div>
-                      <p className="font-bold">
+                      <p className="font-bold text-sm md:text-base">
                         {post.author?.name || "Admin"}
                       </p>
-                      <p className="text-sm text-muted-foreground">Author</p>
+                      <p className="text-xs md:text-sm text-muted-foreground font-medium">Author</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <time className="text-sm">
+                    <time className="text-xs md:text-sm font-medium">
                       {format(new Date(post.created_at), "MMMM dd, yyyy")}
                     </time>
                   </div>
@@ -119,7 +106,7 @@ const BlogDetails = () => {
               </header>
 
               {post.featured_image && (
-                <div className="mb-12 rounded-3xl overflow-hidden border border-border">
+                <div className="mb-10 md:mb-12 rounded-2xl md:rounded-[2rem] overflow-hidden border border-border shadow-lg">
                   <img
                     src={post.featured_image}
                     alt={post.title}
@@ -133,29 +120,29 @@ const BlogDetails = () => {
               )}
 
               <div
-                className="prose prose-lg prose-invert max-w-none 
+                className="prose prose-sm md:prose-base lg:prose-lg prose-invert max-w-none 
                   prose-headings:font-bold prose-headings:text-foreground
                   prose-p:text-muted-foreground prose-p:leading-relaxed
                   prose-a:text-primary prose-strong:text-foreground"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
 
-              <footer className="mt-20 pt-10 border-t border-border">
-                <div className="bg-card p-10 rounded-[32px] border border-border text-center">
-                  <h3 className="text-2xl font-bold mb-4">
+              <footer className="mt-16 md:mt-20 pt-10 border-t border-border">
+                <div className="bg-card p-6 md:p-10 rounded-2xl md:rounded-[32px] border border-border text-center">
+                  <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">
                     Want more insights?
                   </h3>
-                  <p className="text-muted-foreground mb-8">
+                  <p className="text-sm md:text-base text-muted-foreground mb-6 md:mb-8 font-medium">
                     Join our newsletter to receive the latest strategies for
                     e-commerce growth.
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                  <div className="flex flex-col sm:flex-row gap-3 md:gap-4 max-w-md mx-auto">
                     <input
                       placeholder="Enter your email"
                       aria-label="Email address"
-                      className="flex-1 px-6 py-4 rounded-full bg-muted border border-border focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="flex-1 px-5 md:px-6 py-3 md:py-4 rounded-full bg-muted border border-border focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
                     />
-                    <button className="px-8 py-4 bg-primary text-white font-bold rounded-full hover:opacity-90 transition-all">
+                    <button className="px-6 md:px-8 py-3 md:py-4 bg-primary text-white font-bold rounded-full hover:opacity-90 transition-all text-sm">
                       Subscribe
                     </button>
                   </div>

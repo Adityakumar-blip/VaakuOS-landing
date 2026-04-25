@@ -36,13 +36,37 @@ const Login = () => {
       if (isAuthenticated) {
         const isValid = await authService.checkSession();
         if (isValid) {
+          // If there's a plan selection, prioritize handling the purchase first
+          if (planId && billingCycle) {
+            const plan = PRICING_DATA[billingCycle as "monthly" | "yearly"]?.find(p => p.id === planId);
+            if (plan) {
+              setLoadingStep("payment");
+              setIsLoading(true);
+              try {
+                await initiatePurchase({
+                  id: plan.id,
+                  name: plan.name,
+                  amount: billingCycle === "monthly" ? plan.amount : plan.discountedMonthlyPrice,
+                  currency: plan.currency,
+                  billing_cycle: billingCycle
+                });
+              } catch (error) {
+                console.error("Purchase initiation failed:", error);
+              } finally {
+                setIsLoading(false);
+                setLoadingStep(null);
+              }
+              return;
+            }
+          }
+          
           const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'vaakuos.local' ? 'http://vaakuos.local:8081' : 'https://app.vaakuos.com';
           window.location.href = planId ? `${appUrl}/dashboard` : `${appUrl}`;
         }
       }
     };
     checkAndRedirect();
-  }, [isAuthenticated, planId]);
+  }, [isAuthenticated, planId, billingCycle, initiatePurchase]);
 
   useEffect(() => {
     const initGoogle = async () => {
@@ -58,6 +82,12 @@ const Login = () => {
             setIsLoading(true);
             setLoadingStep("auth");
             const user = await authService.googleLogin(response.credential);
+            
+            // Save token for API calls
+            if (user.access_token) {
+              localStorage.setItem("auth_token", user.access_token);
+            }
+            
             toast({
               title: "Welcome back!",
               description: "You have successfully logged in with Google.",
@@ -108,6 +138,11 @@ const Login = () => {
 
     try {
       const result = await authService.login({ email, password, rememberMe });
+      
+      // Save token for API calls
+      if (result.access_token) {
+        localStorage.setItem("auth_token", result.access_token);
+      }
       
       toast({
         title: "Welcome back!",

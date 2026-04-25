@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useBookDemo } from "@/contexts/BookDemoContext";
 import { BrandMark } from "@/components/BrandMark";
-import WhiteLogo from '@/assets/white_full.png'
+import WhiteLogo from "@/assets/white_full.png";
 import {
   Sheet,
   SheetContent,
@@ -20,7 +20,7 @@ export const Navigation = () => {
 
   const navItems = [
     { label: "Integrations", path: "/integrations" },
-    // { label: "Pricing", path: "/pricing" },
+    { label: "Pricing", path: "/pricing" },
     { label: "Calculator", path: "/calculator" },
     { label: "Blogs", path: "/blog" },
   ];
@@ -54,7 +54,7 @@ export const Navigation = () => {
             onClick={() => navigate("/")}
           >
             <div className="bg-primary p-[3px] rounded-lg">
-            <img src={WhiteLogo} className="h-10 w-10" />
+              <img src={WhiteLogo} className="h-10 w-10" />
             </div>
             <span className="text-xl font-bold text-foreground tracking-tight">
               VaakuOS
@@ -76,7 +76,11 @@ export const Navigation = () => {
 
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/login")}
+              >
                 Sign In
               </Button>
               <Button variant="hero" size="sm" onClick={openBookDemo}>

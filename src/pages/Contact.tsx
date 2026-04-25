@@ -37,7 +37,7 @@ const Contact = () => {
                     <p className="text-muted-foreground">For general inquiries: hello@vaakuos.com</p>
                   </div>
                 </div>
-                <div className="flex gap-6">
+                {/* <div className="flex gap-6">
                   <div className="h-12 w-12 rounded-2xl bg-secondary/10 flex items-center justify-center shrink-0">
                     <MessageCircle className="h-6 w-6 text-secondary" />
                   </div>
@@ -48,7 +48,7 @@ const Contact = () => {
                       Open Live Chat <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="flex gap-6">
                   <div className="h-12 w-12 rounded-2xl bg-accent/10 flex items-center justify-center shrink-0">
@@ -57,10 +57,10 @@ const Contact = () => {
                   <div>
                     <h3 className="text-lg font-bold mb-1">Our Offices</h3>
                     <p className="text-muted-foreground font-semibold">UNSOLVED TECHNOLOGIES LLP</p>
-                    <p className="text-muted-foreground">B-93(A-4-B-new), F-1 Shiv Mandir Vali Gali,</p>
-                    <p className="text-muted-foreground">Janakpuri, SBD, Ghaziabad, Uttar Pradesh - 201001</p>
+                    {/* <p className="text-muted-foreground">B-93(A-4-B-new), F-1 Shiv Mandir Vali Gali,</p> */}
+                    <p className="text-muted-foreground">Ghaziabad, Uttar Pradesh</p>
                     <p className="text-muted-foreground mt-2">
-                       <span className="font-semibold text-foreground">Mobile:</span> +91 8447576338
+                       <span className="font-semibold text-foreground">Mobile:</span> +91 9537272910
                     </p>
                   </div>
                 </div>
@@ -114,7 +114,7 @@ const Contact = () => {
           </div>
         </div>
 
-        <section className="mt-32 py-24 bg-muted/30 border-y border-border">
+        {/* <section className="mt-32 py-24 bg-muted/30 border-y border-border">
           <div className="container mx-auto max-w-6xl px-4">
              <div className="grid md:grid-cols-3 gap-12 text-center">
                 <div>
@@ -134,7 +134,7 @@ const Contact = () => {
                 </div>
              </div>
           </div>
-        </section>
+        </section> */}
       </main>
 
       <Footer />

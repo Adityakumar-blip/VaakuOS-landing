@@ -23,6 +23,7 @@ const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const Community = lazy(() => import("./pages/Community"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
+const Demo = lazy(() => import("./pages/Demo"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const BlogQueryLayout = lazy(() => import("./pages/BlogQueryLayout"));
 const Blog = lazy(() => import("./pages/Blog"));
@@ -151,6 +152,7 @@ const App = () => (
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogDetails />} />
             </Route>
+            <Route path="/demo" element={<Demo />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

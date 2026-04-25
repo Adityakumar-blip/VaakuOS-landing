@@ -88,11 +88,11 @@ const Pricing = () => {
 
       <main className="container mx-auto px-4 pt-32 pb-24 relative z-10 max-w-[1200px]">
         {/* --- Header & Toggles --- */}
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
+        <div className="text-center max-w-4xl mx-auto mb-12">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight pb-4 mb-2 leading-normal bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
             Simple, Transparent Pricing
           </h1>
-          <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto font-medium">
             Choose the perfect plan for your business. Whether you're just starting out or scaling fast, we've got you covered.
           </p>
 
@@ -139,10 +139,10 @@ const Pricing = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1, duration: 0.5 }}
                 className={cn(
-                  "relative flex flex-col p-8 border backdrop-blur-xl transition-all duration-500 rounded-[2.5rem] group",
+                  "relative flex flex-col p-8 border backdrop-blur-xl transition-all duration-500 rounded-[2rem] group",
                   isGrowth
-                    ? "bg-primary/5 border-primary/50 shadow-2xl shadow-primary/10 ring-1 ring-primary/20"
-                    : "bg-white/40 border-border/50 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5",
+                    ? "bg-primary/5 border-primary/40 shadow-2xl shadow-primary/10 ring-1 ring-primary/20"
+                    : "bg-white/40 border-border/40 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5",
                 )}
               >
                 {isGrowth && (
@@ -152,28 +152,28 @@ const Pricing = () => {
                 )}
 
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <h3 className="text-xl font-bold pb-1 mb-2 group-hover:text-primary transition-colors">{plan.name}</h3>
+                  <p className="text-[13px] text-muted-foreground/80 leading-relaxed font-medium">
                     {plan.subtitle}
                   </p>
                 </div>
 
-                <div className="mb-10">
+                <div className="mb-8">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-black tracking-tighter">
+                    <span className="text-3xl font-bold tracking-tight">
                       ₹{displayPrice.toLocaleString()}
                     </span>
-                    <span className="text-muted-foreground font-semibold text-base">
+                    <span className="text-muted-foreground/60 font-medium text-sm">
                       /mo
                     </span>
                   </div>
                   {billingCycle === "yearly" && (
-                    <p className="text-sm text-primary font-bold mt-2 animate-pulse">
+                    <p className="text-[12px] text-primary font-semibold mt-1.5">
                       Billed annually (₹{plan.yearlyPrice.toLocaleString()}/yr)
                     </p>
                   )}
                   {billingCycle === "monthly" && (
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className="text-[12px] text-muted-foreground mt-1.5 font-medium">
                        ₹{plan.yearlyPrice.toLocaleString()}/yr if billed yearly
                     </p>
                   )}
@@ -201,10 +201,10 @@ const Pricing = () => {
                 <Button
                   size="lg"
                   className={cn(
-                    "w-full font-bold h-14 rounded-2xl mt-10 transition-all duration-300",
+                    "w-full font-bold h-12 rounded-xl mt-8 transition-all duration-300",
                     isGrowth
-                      ? "bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(var(--primary),0.5)] hover:-translate-y-1"
-                      : "bg-secondary hover:bg-secondary/80 text-foreground hover:-translate-y-1",
+                      ? "bg-primary hover:bg-primary/90 text-white shadow-[0_10px_20px_-5px_rgba(var(--primary),0.3)] hover:-translate-y-0.5"
+                      : "bg-secondary hover:bg-secondary/80 text-foreground hover:-translate-y-0.5",
                   )}
                   onClick={() => handleGetStarted(plan.id)}
                 >
@@ -220,12 +220,12 @@ const Pricing = () => {
 
         {/* --- Comparison Table --- */}
         <div className="max-w-[1000px] mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">Compare Features</h2>
-            <p className="text-muted-foreground">Find the detailed breakdown of what's included in each plan.</p>
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold mb-3">Compare Features</h2>
+            <p className="text-sm text-muted-foreground font-medium">Find the detailed breakdown of what's included in each plan.</p>
           </div>
 
-          <div className="bg-white/40 backdrop-blur-2xl rounded-[3rem] border border-border/50 shadow-2xl overflow-hidden">
+          <div className="bg-white/40 backdrop-blur-2xl rounded-[2rem] border border-border/40 shadow-2xl overflow-hidden">
             <TooltipProvider>
               {/* Desktop Sticky Header */}
               <div className="hidden md:grid grid-cols-4 gap-4 sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-border/50 py-8 px-8">
@@ -239,7 +239,7 @@ const Pricing = () => {
                     className="col-span-1 text-center flex flex-col items-center justify-center"
                   >
                     <span className={cn(
-                      "font-black text-xl mb-4",
+                      "font-bold text-lg mb-3",
                       plan.name === "Growth" ? "text-primary" : "text-foreground"
                     )}>
                       {plan.name}
@@ -276,7 +276,7 @@ const Pricing = () => {
                             className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center px-8 py-6 hover:bg-primary/[0.02] transition-colors group"
                           >
                             {/* Feature Name */}
-                            <div className="col-span-1 font-bold text-foreground/80 text-sm flex items-center gap-2">
+                            <div className="col-span-1 font-semibold text-foreground/80 text-[13px] flex items-center gap-2">
                               {metadata?.label || row.key}
                               {row.help && (
                                 <Tooltip>
@@ -325,15 +325,15 @@ const Pricing = () => {
 
 const renderCell = (value: any) => {
   if (value === true || value === "Included")
-    return <CheckCircle2 className="h-6 w-6 text-primary mx-auto" strokeWidth={2.5} />;
+    return <CheckCircle2 className="h-5 w-5 text-primary mx-auto" strokeWidth={2.5} />;
   if (value === false || value === "Not Included")
     return (
-      <span className="text-muted-foreground/20 text-2xl font-light">—</span>
+      <span className="text-muted-foreground/20 text-xl font-light">—</span>
     );
   if (value === -1 || value === "Unlimited") {
-    return <span className="text-primary font-black tracking-tighter text-lg">∞</span>;
+    return <span className="text-primary font-bold tracking-tighter text-base">∞</span>;
   }
-  return <span className="text-foreground/90 font-bold">{value}</span>;
+  return <span className="text-foreground/90 font-semibold">{value}</span>;
 };
 
 export default Pricing;

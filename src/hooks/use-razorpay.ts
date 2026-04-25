@@ -86,7 +86,8 @@ export const useRazorpay = () => {
                 description: `${plan.name} Subscription`,
                 handler: () => {
                     toast.success("Subscription successful!");
-                    window.location.href = "https://app.vaakuos.com/dashboard";
+                    const appUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'vaakuos.local' ? 'http://vaakuos.local:8081' : 'https://app.vaakuos.com';
+                    window.location.href = `${appUrl}/dashboard`;
                 },
             };
 
